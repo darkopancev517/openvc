@@ -2,8 +2,7 @@
 
 int main(void)
 {
-    extern void cpu_led_on(void);
-    cpu_led_on();
+    printf("hello world\n");
 
     return 0;
 }

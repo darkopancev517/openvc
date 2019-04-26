@@ -63,6 +63,9 @@ void reset_handler_default(void)
     /* initialize the board (which also initiates CPU initialization) */
     board_init();
 
+    extern void __libc_init_array(void);
+    __libc_init_array();
+
     /* startup the kernel */
     kernel_init();
 }

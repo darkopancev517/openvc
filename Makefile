@@ -75,7 +75,6 @@ CFLAGS += -march=armv7-m -mno-unaligned-access
 endif
 CFLAGS += -Wall -Werror
 CFLAGS += -std=c99
-CFLAGS += -D_BSD_SOURCE=1 -D_DEFAULT_SOURCE=1
 CFLAGS += $(DEF)
 CFLAGS += $(INC)
 
@@ -87,7 +86,7 @@ LDFLAGS += -mcpu=cortex-m3 -mlittle-endian -mthumb -mfloat-abi=soft
 LDFLAGS += -march=armv7-m -mno-unaligned-access
 endif
 LDFLAGS += -static -lgcc -nostartfiles
-LDFLAGS += -specs=nosys.specs -Wl,--gc-sections
+LDFLAGS += -specs=nano.specs -Wl,--gc-sections
 
 ###################################################
 # BUILD path for each modules

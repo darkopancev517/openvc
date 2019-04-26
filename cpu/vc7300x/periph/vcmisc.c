@@ -197,7 +197,24 @@ void vcmisc_set_sys_core_clk(uint32_t clock)
 
     vcana_config_hfrco_hf(system_core_clock);
 
-    while (vcpmu_32k_xtal_status() == 0);
+    // wait until clock is stable
+    uint32_t timeout = 0x10000;
+    uint32_t counter = 0;
+
+    while (vcpmu_32k_xtal_status() == 0x0) {
+        counter++;
+        if (counter >= timeout) {
+            break;
+        }
+    }
+
+    counter = 0;
+    while (vcana_auto_calib_lock() == 0x0) {
+        counter++;
+        if (counter >= timeout) {
+            break;
+        }
+    }
 }
 
 void vcmisc_disable_all_periph_clk(void)
