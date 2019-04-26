@@ -32,10 +32,3 @@ void cpu_init(void)
     /* disable watchdog timer */
     vcwdt_disable();
 }
-
-void cpu_led_on(void)
-{
-    vcgpio_config_mode(IOA, 7, IOMODE_OUT);
-    vcgpio_config_att(IOA, 7, IOATT_CMOS);
-    vcgpio_reset_bit(IOA, 7);
-}

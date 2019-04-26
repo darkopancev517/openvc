@@ -7,7 +7,7 @@
 #include "irq.h"
 #include "log.h"
 
-#define ENABLE_DEBUG (0)
+#define ENABLE_DEBUG (1)
 #include "debug.h"
 
 #if ENABLE_DEBUG
@@ -38,7 +38,7 @@ int __attribute__((used)) sched_run(void)
     int nextrq = bitarithm_lsb(runqueue_bitcache);
     thread_t *next_thread = container_of(sched_runqueues[nextrq].next->next, thread_t, rq_entry);
 
-    DEBUG("sched_run: active thread: %" PRIkernel_pid ", next thread: %" PRIkernel_pid "\n",
+    DEBUG("sched_run: active thread: %" PRIkernel_pid ", next thread: %" PRIkernel_pid ".\n",
           (kernel_pid_t)((active_thread == NULL) ? KERNEL_PID_UNDEF : active_thread->pid),
           next_thread->pid);
 
@@ -66,14 +66,14 @@ void sched_set_status(thread_t *process, thread_state_t status)
 {
     if (status >= STATUS_ON_RUNQUEUE) {
         if (!(process->status >= STATUS_ON_RUNQUEUE)) {
-            DEBUG("sched_set_status: adding thread %" PRIkernel_pid " to runqueue %" PRIu8 ".\n",
+            DEBUG("sched_set_status: adding thread %" PRIkernel_pid " to runqueue %u.\n",
                   process->pid, process->priority);
             clist_rpush(&sched_runqueues[process->priority], &(process->rq_entry));
             runqueue_bitcache |= 1 << process->priority;
         }
     } else {
         if (process->status >= STATUS_ON_RUNQUEUE) {
-            DEBUG("sched_set_status: removing thread %" PRIkernel_pid " from runqueue %" PRIu8 ".\n",
+            DEBUG("sched_set_status: removing thread %" PRIkernel_pid " from runqueue %u.\n",
                   process->pid, process->priority);
             clist_lpop(&sched_runqueues[process->priority]);
             if (!sched_runqueues[process->priority].next) {
@@ -92,7 +92,7 @@ void sched_switch(uint16_t other_prio)
     int on_runqueue = (active_thread->status >= STATUS_ON_RUNQUEUE);
 
     DEBUG("sched_switch: active pid=%" PRIkernel_pid" prio=%" PRIu16 " on_runqueue=%i "
-          ", other_prio=%" PRIu16 "\n",
+          ", other_prio=%" PRIu16 ".\n",
           active_thread->pid, current_prio, on_runqueue, other_prio);
 
     if (!on_runqueue || (current_prio > other_prio)) {

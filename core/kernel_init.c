@@ -6,6 +6,8 @@
 #include "thread.h"
 #include "irq.h"
 
+#include "periph/pm.h"
+
 extern int main(void);
 
 static void *main_thread(void *arg)
@@ -21,6 +23,7 @@ static void *idle_thread(void *arg)
     (void) arg;
 
     while (1) {
+        pm_set_lowest();
     }
 
     return NULL;

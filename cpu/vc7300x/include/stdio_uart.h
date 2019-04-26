@@ -7,10 +7,6 @@
 extern "C" {
 #endif
 
-#ifndef STDIO_UART_DEV
-#define STDIO_UART_DEV          (0)
-#endif
-
 #ifndef STDIO_UART_BAUDRATE
 #define STDIO_UART_BAUDRATE     (115200)
 #endif
