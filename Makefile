@@ -60,6 +60,7 @@ INC += -I$(TOP)/core/include
 INC += -I$(TOP)/cpu/cortexm/include
 INC += -I$(TOP)/cpu/cortexm/include/vendor
 INC += -I$(TOP)/cpu/$(CPU)/include
+INC += -I$(TOP)/cpu/$(CPU)/periph/include
 INC += -I$(TOP)/boards/$(BOARD)/include
 INC += -I$(TOP)/apps/$(APPS)
 

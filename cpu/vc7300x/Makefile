@@ -3,6 +3,7 @@
 ####################################################
 SRCS_CORTEXM += $(wildcard ../cortexm/*.c)
 SRCS_CPU     += $(wildcard *.c)
+SRCS_CPU     += $(wildcard periph/*.c)
 
 ####################################################
 OBJS_CORTEXM += $(addprefix $(BUILD)/, $(SRCS_CORTEXM:.c=.o))
