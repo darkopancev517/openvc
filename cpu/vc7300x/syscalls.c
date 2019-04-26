@@ -23,9 +23,6 @@ char *heap_top = &_sheap + 4;
 void _init(void)
 {
     stdio_init();
-
-    extern void cpu_led_on(void);
-    cpu_led_on();
 }
 
 __attribute__((used)) void _fini(void)
