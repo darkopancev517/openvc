@@ -39,7 +39,7 @@ WEAK_DEFAULT void isr_crypto(void);
 WEAK_DEFAULT void isr_i2c2(void);
 WEAK_DEFAULT void isr_gpio(void);
 
-ISR_VECTOR(1) const isr_t vectors_cpu[CPU_IRQ_NUMOF] = {
+ISR_VECTOR(1) const isr_t vector_cpu[CPU_IRQ_NUMOF] = {
     [ 0] = isr_pmu,
     [ 1] = isr_rtc,
     [ 2] = isr_u32k0,

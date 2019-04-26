@@ -6,14 +6,14 @@ void cpu_init(void)
     /* initialize the Cortex-M core */
     cortexm_init();
 
-    /* initialze vc7300x periph */
+    /* initialize vc7300x periph */
     vcmisc_config_ahb_source(CLK_SOURCE_HRCO);
     vcmisc_set_sys_core_clk(39321600); // 39.3216 MHz
 
     vcmisc_config_ahb_div(1);
     vcmisc_config_apb_div(2);
 
-    // wait until clock is stable
+    /* wait until clock is stable */
     uint32_t timeout = 0x10000;
     uint32_t counter = 0;
 
@@ -29,6 +29,13 @@ void cpu_init(void)
     vcana_config_lpldo_vsel(2);
     vcmisc_config_pwrup_delay(0x3f);
 
-    // disable watchdog timer
+    /* disable watchdog timer */
     vcwdt_disable();
+}
+
+void cpu_led_on(void)
+{
+    vcgpio_config_mode(IOA, 7, IOMODE_OUT);
+    vcgpio_config_att(IOA, 7, IOATT_CMOS);
+    vcgpio_reset_bit(IOA, 7);
 }
