@@ -99,7 +99,13 @@ void thread_add_to_list(list_node_t *list, thread_t *thread)
     list->next = new_node;
 }
 
-kernel_pid_t thread_create(char *stack, int stacksize, char priority, int flags, thread_task_func_t function, void *arg, const char *name)
+kernel_pid_t thread_create(char *stack,
+                           int stacksize,
+                           char priority,
+                           int flags,
+                           thread_task_func_t function,
+                           void *arg,
+                           const char *name)
 {
     if (priority >= SCHED_PRIO_LEVELS) {
         return -EINVAL;
