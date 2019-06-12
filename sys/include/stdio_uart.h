@@ -1,10 +1,16 @@
 #ifndef STDIO_UART_H
 #define STDIO_UART_H
 
+/* boards may override the default STDIO UART device */
+#include "board.h"
 #include "stdio_base.h"
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#ifndef STDIO_UART_DEV
+#define STDIO_UART_DEV          UART_DEV(0)
 #endif
 
 #ifndef STDIO_UART_BAUDRATE

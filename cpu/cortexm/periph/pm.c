@@ -6,12 +6,7 @@ void pm_reboot(void)
     NVIC_SystemReset();
 }
 
-void pm_off(void)
-{
-
-}
-
 void pm_set_lowest(void)
 {
-    cortexm_sleep(0);
+    cortexm_sleep(/* not deep-sleep */ 0);
 }

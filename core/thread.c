@@ -4,11 +4,11 @@
 #include "assert.h"
 #include "thread.h"
 #include "irq.h"
-
-#define ENABLE_DEBUG (1)
-#include "debug.h"
 #include "bitarithm.h"
 #include "sched.h"
+
+#define ENABLE_DEBUG (0)
+#include "debug.h"
 
 volatile thread_t *thread_get(kernel_pid_t pid)
 {

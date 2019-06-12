@@ -1,15 +1,11 @@
-####################################################
-# apps: hello-world build
-####################################################
-SRCS_APPS += $(wildcard *.c)
+SRCS_APPS += $(wildcard $(APPS)/*.c)
 
-####################################################
 OBJS_APPS += $(addprefix $(BUILD)/, $(SRCS_APPS:.c=.o))
 
-OBJS_DIR = $(sort $(dir $(OBJS_APPS)))
+OBJS_DIR += $(sort $(dir $(OBJS_APPS)))
 
 LIB_APPS_ARCHIVE = $(BUILD)/$(LIB_APPS)
-LIB_APPS_OBJS   += $(OBJS_APPS)
+LIB_APPS_OBJS += $(OBJS_APPS)
 
 ARCHIVE_FILES += $(LIB_APPS_ARCHIVE)
 
@@ -19,7 +15,9 @@ $(OBJS_DIR):
 
 $(BUILD)/%.o: %.c
 	$(ECHO) "CC $<"
-	$(CC) $(CFLAGS) -c -o $@ $<
+	$(CC) -DFILE_RELATIVE=\"$(patsubst $(TOP)/%,%,$(abspath $<))\" \
+		  -DFILE_NOPATH=\"$(notdir $<)\" \
+		  $(CFLAGS) -c -o $@ $<
 
 $(BUILD)/%.a:
 	$(ECHO) "AR $@"

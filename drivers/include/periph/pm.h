@@ -7,8 +7,6 @@ extern "C" {
 
 void pm_reboot(void);
 
-void pm_off(void);
-
 void pm_set_lowest(void);
 
 #ifdef __cplusplus

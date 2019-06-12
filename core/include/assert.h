@@ -5,7 +5,9 @@
 extern "C" {
 #endif
 
-#define assert(ignore)((void) 0)
+extern void assert_failure(const char *file, unsigned line);
+
+#define assert(cond) ((cond) ? (void)0 : assert_failure(FILE_RELATIVE, __LINE__))
 
 #ifdef __cplusplus
 }

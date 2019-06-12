@@ -8,49 +8,46 @@ endif
 ###################################################
 # Commands
 ###################################################
-export CC       = $(Q)arm-none-eabi-gcc
-export AS       = $(Q)arm-none-eabi-gcc
-export LD       = $(Q)arm-none-eabi-ld
-export AR       = $(Q)arm-none-eabi-ar
-export CPP      = $(Q)arm-none-eabi-g++
-export SIZE     = $(Q)arm-none-eabi-size
-export STRIP    = $(Q)arm-none-eabi-strip -s
-export OBJCOPY  = $(Q)arm-none-eabi-objcopy
-export OBJDUMP  = $(Q)arm-none-eabi-objdump
-export RM       = $(Q)rm
-export MV       = $(Q)mv
-export MKDIR    = $(Q)mkdir
-export ECHO     = $(Q)@echo
+export CC = $(Q)arm-none-eabi-gcc
+export AS = $(Q)arm-none-eabi-gcc
+export LD = $(Q)arm-none-eabi-ld
+export AR = $(Q)arm-none-eabi-ar
+export CPP = $(Q)arm-none-eabi-g++
+export SIZE = $(Q)arm-none-eabi-size
+export STRIP = $(Q)arm-none-eabi-strip -s
+export OBJCOPY = $(Q)arm-none-eabi-objcopy
+export OBJDUMP = $(Q)arm-none-eabi-objdump
+export RM = $(Q)rm
+export MV = $(Q)mv
+export MKDIR = $(Q)mkdir
+export ECHO = $(Q)@echo
 ifeq ($(v),1)
-export MAKE     = $(Q)make
+export MAKE = $(Q)make
 else
-export MAKE     = $(Q)make -s
+export MAKE = $(Q)make -s
 endif
-export TOP      = $(shell pwd)
+export TOP = $(shell pwd)
+
+OPENVC = openvc
 
 ###################################################
 # Targets
 ###################################################
-VCRTOS   = vcrtos
-CPU  	 = vc7300x
-CPU_ARCH = CORTEX_M3
-BOARD    = vc7300-meter
-APPS 	 = hello_world
-BUILD 	 = $(TOP)/build/$(CPU)
+export APPS ?= shell
+export BOARD ?= vc7300mtr
+
+ifeq ($(BOARD),$(filter $(BOARD),vc7300mtr))
+export CPU = sirius
+export CORTEXM = m3
+export ARCH = armv7-m
+endif
+
+BUILD = $(TOP)/build/$(CPU)
 
 ###################################################
 # Images
 ###################################################
 FIRMWARE = firmware
-
-###################################################
-# Directories
-###################################################
-CORE_DIR     = core
-CPU_DIR 	 = cpu/$(CPU)
-BOARD_DIR    = boards/$(BOARD)
-APPS_DIR     = apps/$(APPS)
-FIRMWARE_DIR = $(FIRMWARE)
 
 ###################################################
 # BUILD variables
@@ -63,17 +60,19 @@ INC += -I$(TOP)/cpu/$(CPU)/include
 INC += -I$(TOP)/cpu/$(CPU)/vendor/include
 INC += -I$(TOP)/drivers/include
 INC += -I$(TOP)/boards/$(BOARD)/include
+INC += -I$(TOP)/sys/include
 INC += -I$(TOP)/apps/$(APPS)
 
-DEF += -DCPU_ARCH_$(CPU_ARCH)
+DEF += -DCPU_ARCH_CORTEX_$(shell echo $(CORTEXM) | tr a-z A-Z)
+ifeq ($(DEVELHELP),1)
+DEF += -DNDEBUG
+endif
 
 CFLAGS += -fdata-sections -ffunction-sections -fno-builtin -fshort-enums
 CFLAGS += -O0
 CFLAGS += -Wno-implicit-fallthrough -Wno-unused-parameter
-ifeq ($(CPU_ARCH),CORTEX_M3)
-CFLAGS += -mcpu=cortex-m3 -mlittle-endian -mthumb -mfloat-abi=soft
-CFLAGS += -march=armv7-m -mno-unaligned-access
-endif
+CFLAGS += -mcpu=cortex-$(CORTEXM) -mlittle-endian -mthumb -mfloat-abi=soft
+CFLAGS += -march=$(ARCH) -mno-unaligned-access
 CFLAGS += -Wall -Werror
 CFLAGS += -std=c99
 CFLAGS += $(DEF)
@@ -82,63 +81,67 @@ CFLAGS += $(INC)
 LDFLAGS += -fdata-sections -ffunction-sections -fno-builtin -fshort-enums
 LDFLAGS += -O0
 LDFLAGS += -Wno-implicit-fallthrough -Wno-unused-parameter
-ifeq ($(CPU_ARCH),CORTEX_M3)
-LDFLAGS += -mcpu=cortex-m3 -mlittle-endian -mthumb -mfloat-abi=soft
-LDFLAGS += -march=armv7-m -mno-unaligned-access
-endif
+LDFLAGS += -mcpu=cortex-$(CORTEXM) -mlittle-endian -mthumb -mfloat-abi=soft
+LDFLAGS += -march=$(ARCH) -mno-unaligned-access
 LDFLAGS += -static -lgcc -nostartfiles
 LDFLAGS += -specs=nano.specs -Wl,--gc-sections
 
 ###################################################
 # BUILD path for each modules
 ###################################################
-FIRMWARE_BUILD       = $(BUILD)/$(FIRMWARE_DIR)
-FIRMWARE_BUILD_CORE  = $(FIRMWARE_BUILD)/$(CORE_DIR)
-FIRMWARE_BUILD_CPU   = $(FIRMWARE_BUILD)/$(CPU_DIR)
-FIRMWARE_BUILD_BOARD = $(FIRMWARE_BUILD)/$(BOARD_DIR)
-FIRMWARE_BUILD_APPS  = $(FIRMWARE_BUILD)/$(APPS_DIR)
+FIRMWARE_BUILD = $(BUILD)/$(FIRMWARE)
 
 ###################################################
 # Libraries definitions
 ###################################################
-export LIB_CORE  = libcore.a
-export LIB_CPU   = libcpu.a
+export LIB_CORE = libcore.a
+export LIB_CPU = libcpu.a
 export LIB_BOARD = libboard.a
-export LIB_APPS  = libapps.a
+export LIB_SYS_SHELL = libsys_shell.a
+export LIB_SYS_STDIO_UART = libsys_stdio_uart.a
+export LIB_SYS_SYSCALLS = libsys_syscalls.a
+export LIB_SYS_TSRB = libsys_tsrb.a
+export LIB_SYS_ISRPIPE = libsys_isrpipe.a
+export LIB_APPS = libapps.a
 
 ###################################################
 # Libraries
 ###################################################
-FIRMWARE_LIBS += $(FIRMWARE_BUILD_CORE)/$(LIB_CORE)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD_CPU)/$(LIB_CPU)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD_BOARD)/$(LIB_BOARD)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD_APPS)/$(LIB_APPS)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/core/$(LIB_CORE)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/cpu/$(LIB_CPU)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/board/$(LIB_BOARD)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_STDIO_UART)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_SYSCALLS)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_TSRB)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_ISRPIPE)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/apps/$(LIB_APPS)
 
 ###################################################
 # Linker script and image info
 ###################################################
 FIRMWARE_LDSCRIPT = cpu/$(CPU)/ldscripts/$(CPU).ld
-FIRMWARE_IMAGE    = $(FIRMWARE_BUILD)/$(FIRMWARE)
+FIRMWARE_IMAGE = $(FIRMWARE_BUILD)/$(FIRMWARE)
 
 ####################################################
 # Make rules
 ####################################################
-all: $(VCRTOS)
+all: $(OPENVC)
 
 $(BUILD):
 	$(MKDIR) -p $@
 
 FIRMWARE_OBJS:
-	$(MAKE) -C core            BUILD=$(FIRMWARE_BUILD_CORE)  CFLAGS="$(CFLAGS)"
-	$(MAKE) -C cpu/$(CPU)      BUILD=$(FIRMWARE_BUILD_CPU)   CFLAGS="$(CFLAGS)"
-	$(MAKE) -C boards/$(BOARD) BUILD=$(FIRMWARE_BUILD_BOARD) CFLAGS="$(CFLAGS)"
-	$(MAKE) -C apps/$(APPS)    BUILD=$(FIRMWARE_BUILD_APPS)  CFLAGS="$(CFLAGS)"
+	$(MAKE) -C core BUILD="$(FIRMWARE_BUILD)/core" CFLAGS="$(CFLAGS) -MD -MP"
+	$(MAKE) -C cpu BUILD="$(FIRMWARE_BUILD)/cpu" CFLAGS="$(CFLAGS) -MD -MP"
+	$(MAKE) -C boards BUILD="$(FIRMWARE_BUILD)/board" CFLAGS="$(CFLAGS) -MD -MP"
+	$(MAKE) -C sys BUILD="$(FIRMWARE_BUILD)/sys" CFLAGS="$(CFLAGS) -MD -MP"
+	$(MAKE) -C apps BUILD="$(FIRMWARE_BUILD)/apps"  CFLAGS="$(CFLAGS) -MD -MP"
 
 $(FIRMWARE_IMAGE).elf: $(FIRMWARE_LIBS)
 	$(CC) $(LDFLAGS) $(patsubst %,-L%,$(patsubst %/,%,$(sort $(dir $(FIRMWARE_LIBS)))))  \
 	-Wl,--whole-archive $(patsubst %,-l%,$(patsubst lib%,%,$(sort $(basename $(notdir $(FIRMWARE_LIBS)))))) \
 	-Wl,--no-whole-archive -T$(FIRMWARE_LDSCRIPT) \
-	-Wl,-Map,$(BUILD)/$(FIRMWARE_DIR)/firmware.map -o $@
+	-Wl,-Map,$(FIRMWARE_BUILD)/firmware.map -o $@
 
 $(FIRMWARE_IMAGE).bin: $(FIRMWARE_IMAGE).elf
 	$(OBJCOPY) -O binary $< $@
@@ -150,7 +153,7 @@ $(FIRMWARE): FIRMWARE_OBJS $(FIRMWARE_IMAGE).bin $(FIRMWARE_IMAGE).lst
 	$(SIZE) --format=berkeley $(FIRMWARE_IMAGE).elf
 	@mv $(FIRMWARE_IMAGE).elf $(FIRMWARE_IMAGE).bin $(BUILD)
 
-$(VCRTOS): $(FIRMWARE) | $(BUILD)
+$(OPENVC): $(FIRMWARE) | $(BUILD)
 
 .PHONY: all clean
 

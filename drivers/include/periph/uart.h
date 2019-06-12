@@ -5,22 +5,15 @@
 #include <stdint.h>
 #include <limits.h>
 
-#include "periph_cpu.h"
-#include "periph_conf.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 typedef unsigned int uart_t;
 
-#ifndef UART_UNDEF
-#define UART_UNDEF          (UINT_MAX)
-#endif
+#define UART_UNDEF ((uart_t)(UINT_MAX))
 
-#ifndef UART_DEV
-#define UART_DEV(x)         (x)
-#endif
+#define UART_DEV(x) ((uart_t)(x))
 
 typedef void (*uart_rx_cb_t)(void *arg, uint8_t data);
 
@@ -59,10 +52,12 @@ typedef enum {
 
 int uart_init(uart_t uart, uint32_t baudrate, uart_rx_cb_t rx_cb, void *arg);
 
-int uart_mode(uart_t uart, uart_data_bits_t data_bits, uart_parity_t parity,
+int uart_mode(uart_t uart,
+              uart_data_bits_t data_bits,
+              uart_parity_t parity,
               uart_stop_bits_t stop_bits);
 
-void uart_write(uart_t const uint8_t *data, size_t len);
+void uart_write(uart_t uart, const uint8_t *data, size_t len);
 
 void uart_poweron(uart_t uart);
 
