@@ -27,7 +27,6 @@ int main(void)
     /* Note: if user don't have `user_command_list` use NULL instead */
 
     /* should not reach here */
-    assert(0);
 
     return 0;
 }
