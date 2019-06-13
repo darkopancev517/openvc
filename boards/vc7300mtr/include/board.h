@@ -28,8 +28,8 @@ extern "C" {
 /* stdio uart interface */
 
 #define STDIO_UART_DEV                  UART_DEV(1)
-#define BOARD_STDIO_UART_BAUDRATE       (115200)
-#define BOARD_STDIO_UART_RX_BUFSIZE     (128)
+#define STDIO_UART_BAUDRATE             (115200)
+#define STDIO_UART_RX_BUFSIZE           (128)
 
 void board_init(void);
 

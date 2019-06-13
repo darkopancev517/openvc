@@ -72,39 +72,39 @@ void reset_handler_default(void)
 
 void nmi_default(void)
 {
-
+    while (1);
 }
 
 void hard_fault_default(void)
 {
-
+    while (1);
 }
 
 #if defined(CPU_ARCH_CORTEX_M3) || defined(CPU_ARCH_CORTEX_M4)
 void mem_manage_default(void)
 {
-
+    while (1);
 }
 
 void bus_fault_default(void)
 {
-
+    while (1);
 }
 
 void usage_fault_default(void)
 {
-
+    while (1);
 }
 
 void debug_mon_default(void)
 {
-
+    while (1);
 }
 #endif
 
 void dummy_handler_default(void)
 {
-
+    while (1);
 }
 
 /* Cortex-M common interrupt vectors */

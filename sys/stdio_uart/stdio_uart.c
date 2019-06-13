@@ -7,9 +7,7 @@ isrpipe_t stdio_uart_isrpipe = ISRPIPE_INIT(_rx_buf_mem);
 
 void stdio_init(void)
 {
-    uart_rx_cb_t cb = (uart_rx_cb_t)isrpipe_write_one;
-    void *arg = &stdio_uart_isrpipe;
-    uart_init(STDIO_UART_DEV, STDIO_UART_BAUDRATE, cb, arg);
+    uart_init(STDIO_UART_DEV, STDIO_UART_BAUDRATE, (uart_rx_cb_t)isrpipe_write_one, &stdio_uart_isrpipe);
 }
 
 ssize_t stdio_read(void *buffer, size_t count)

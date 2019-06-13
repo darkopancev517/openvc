@@ -57,11 +57,9 @@ void *_sbrk_r(struct _reent *r, ptrdiff_t incr)
 
 _ssize_t _read_r(struct _reent *r, int fd, void *buffer, size_t count)
 {
+    (void) r;
     (void) fd;
-    (void) buffer;
-    (void) count;
-    r->_errno = ENOTSUP;
-    return 0;
+    return stdio_read(buffer, count);
 }
 
 _ssize_t _write_r(struct _reent *r, int fd, const void *data, size_t count)

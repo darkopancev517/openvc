@@ -26,7 +26,7 @@ int _mutex_lock(mutex_t *mutex, int blocking)
         return 1;
     } else if (blocking) {
         thread_t *me = (thread_t *)sched_active_thread;
-        DEBUG("PID[%" PRIkernel_pid "]: adding node to mutex queue: prio: %"
+        DEBUG("PID[%" PRIkernel_pid "]: adding node to mutex queue prio: %"
               PRIu32 "\n", sched_active_pid, (uint32_t)me->priority);
         sched_set_status(me, STATUS_MUTEX_BLOCKED);
         if (mutex->queue.next == MUTEX_LOCKED) {

@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 #ifndef ISR_STACKSIZE
-#define ISR_STACKSIZE (512U)
+#define ISR_STACKSIZE (512)
 #endif
 
 /* ARM Cortex-M specific CPU configuration */

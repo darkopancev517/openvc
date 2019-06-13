@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <errno.h>
+#include <stdio.h>
 
 #include "kernel_init.h"
 #include "thread.h"
