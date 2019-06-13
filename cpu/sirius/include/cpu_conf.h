@@ -23,12 +23,12 @@ extern "C" {
 #endif
 
 /* ARM Cortex-M specific CPU configuration */
-#define CPU_DEFAULT_IRQ_PRIO (1U)
+#define CPU_DEFAULT_IRQ_PRIO (63U)
 
-#define CPU_IRQ_NUMOF (38U)
+#define CPU_IRQ_NUMOF (64U)
 
 /* NVIC use 8 priority levels */
-#define __NVIC_PRIO_BITS (3U)
+#define __NVIC_PRIO_BITS (6U)
 
 typedef enum {
     NonMaskableInt_IRQn     = -14,
