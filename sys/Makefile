@@ -1,55 +1,64 @@
+include module.mk
+
+ifeq ($(MODULE_ISRPIPE),1)
 SRCS_SYS_ISRPIPE += $(wildcard isrpipe/*.c)
-SRCS_SYS_STDIO_UART += $(wildcard stdio_uart/*.c)
-SRCS_SYS_SYSCALLS += $(wildcard syscalls/*.c)
-SRCS_SYS_TSRB += $(wildcard tsrb/*.c)
-SRCS_SYS_SHELL += $(wildcard shell/*.c)
-SRCS_SYS_SHELL_COMMANDS += $(wildcard shell/commands/*.c)
-SRCS_SYS_PS += $(wildcard ps/*.c)
-
 OBJS_SYS_ISRPIPE += $(addprefix $(BUILD)/, $(SRCS_SYS_ISRPIPE:.c=.o))
-OBJS_SYS_STDIO_UART += $(addprefix $(BUILD)/, $(SRCS_SYS_STDIO_UART:.c=.o))
-OBJS_SYS_SYSCALLS += $(addprefix $(BUILD)/, $(SRCS_SYS_SYSCALLS:.c=.o))
-OBJS_SYS_TSRB += $(addprefix $(BUILD)/, $(SRCS_SYS_TSRB:.c=.o))
-OBJS_SYS_SHELL += $(addprefix $(BUILD)/, $(SRCS_SYS_SHELL:.c=.o))
-OBJS_SYS_SHELL_COMMANDS += $(addprefix $(BUILD)/, $(SRCS_SYS_SHELL_COMMANDS:.c=.o))
-OBJS_SYS_PS += $(addprefix $(BUILD)/, $(SRCS_SYS_PS:.c=.o))
-
 OBJS_DIR += $(sort $(dir $(OBJS_SYS_ISRPIPE)))
-OBJS_DIR += $(sort $(dir $(OBJS_SYS_STDIO_UART)))
-OBJS_DIR += $(sort $(dir $(OBJS_SYS_SYSCALLS)))
-OBJS_DIR += $(sort $(dir $(OBJS_SYS_TSRB)))
-OBJS_DIR += $(sort $(dir $(OBJS_SYS_SHELL)))
-OBJS_DIR += $(sort $(dir $(OBJS_SYS_SHELL_COMMANDS)))
-OBJS_DIR += $(sort $(dir $(OBJS_SYS_PS)))
-
 LIB_SYS_ISRPIPE_ARCHIVE = $(BUILD)/$(LIB_SYS_ISRPIPE)
 LIB_SYS_ISRPIPE_OBJS += $(OBJS_SYS_ISRPIPE)
+ARCHIVE_FILES += $(LIB_SYS_ISRPIPE_ARCHIVE)
+endif
 
+ifeq ($(MODULE_STDIO_UART),1)
+SRCS_SYS_STDIO_UART += $(wildcard stdio_uart/*.c)
+OBJS_SYS_STDIO_UART += $(addprefix $(BUILD)/, $(SRCS_SYS_STDIO_UART:.c=.o))
+OBJS_DIR += $(sort $(dir $(OBJS_SYS_STDIO_UART)))
 LIB_SYS_STDIO_UART_ARCHIVE = $(BUILD)/$(LIB_SYS_STDIO_UART)
 LIB_SYS_STDIO_UART_OBJS += $(OBJS_SYS_STDIO_UART)
+ARCHIVE_FILES += $(LIB_SYS_STDIO_UART_ARCHIVE)
+endif
 
+ifeq ($(MODULE_SYSCALLS),1)
+SRCS_SYS_SYSCALLS += $(wildcard syscalls/*.c)
+OBJS_SYS_SYSCALLS += $(addprefix $(BUILD)/, $(SRCS_SYS_SYSCALLS:.c=.o))
+OBJS_DIR += $(sort $(dir $(OBJS_SYS_SYSCALLS)))
 LIB_SYS_SYSCALLS_ARCHIVE = $(BUILD)/$(LIB_SYS_SYSCALLS)
 LIB_SYS_SYSCALLS_OBJS += $(OBJS_SYS_SYSCALLS)
+ARCHIVE_FILES += $(LIB_SYS_SYSCALLS_ARCHIVE)
+endif
 
+ifeq ($(MODULE_TSRB),1)
+SRCS_SYS_TSRB += $(wildcard tsrb/*.c)
+OBJS_SYS_TSRB += $(addprefix $(BUILD)/, $(SRCS_SYS_TSRB:.c=.o))
+OBJS_DIR += $(sort $(dir $(OBJS_SYS_TSRB)))
 LIB_SYS_TSRB_ARCHIVE = $(BUILD)/$(LIB_SYS_TSRB)
 LIB_SYS_TSRB_OBJS += $(OBJS_SYS_TSRB)
+ARCHIVE_FILES += $(LIB_SYS_TSRB_ARCHIVE)
+endif
 
+ifeq ($(MODULE_SHELL),1)
+SRCS_SYS_SHELL += $(wildcard shell/*.c)
+SRCS_SYS_SHELL_COMMANDS += $(wildcard shell/commands/*.c)
+OBJS_SYS_SHELL += $(addprefix $(BUILD)/, $(SRCS_SYS_SHELL:.c=.o))
+OBJS_SYS_SHELL_COMMANDS += $(addprefix $(BUILD)/, $(SRCS_SYS_SHELL_COMMANDS:.c=.o))
+OBJS_DIR += $(sort $(dir $(OBJS_SYS_SHELL)))
+OBJS_DIR += $(sort $(dir $(OBJS_SYS_SHELL_COMMANDS)))
 LIB_SYS_SHELL_ARCHIVE = $(BUILD)/$(LIB_SYS_SHELL)
 LIB_SYS_SHELL_OBJS += $(OBJS_SYS_SHELL)
-
 LIB_SYS_SHELL_COMMANDS_ARCHIVE = $(BUILD)/$(LIB_SYS_SHELL_COMMANDS)
 LIB_SYS_SHELL_COMMANDS_OBJS += $(OBJS_SYS_SHELL_COMMANDS)
-
-LIB_SYS_PS_ARCHIVE = $(BUILD)/$(LIB_SYS_PS)
-LIB_SYS_PS_OBJS += $(OBJS_SYS_PS)
-
-ARCHIVE_FILES += $(LIB_SYS_ISRPIPE_ARCHIVE)
-ARCHIVE_FILES += $(LIB_SYS_STDIO_UART_ARCHIVE)
-ARCHIVE_FILES += $(LIB_SYS_SYSCALLS_ARCHIVE)
-ARCHIVE_FILES += $(LIB_SYS_TSRB_ARCHIVE)
 ARCHIVE_FILES += $(LIB_SYS_SHELL_ARCHIVE)
 ARCHIVE_FILES += $(LIB_SYS_SHELL_COMMANDS_ARCHIVE)
+endif
+
+ifeq ($(MODULE_PS),1)
+SRCS_SYS_PS += $(wildcard ps/*.c)
+OBJS_SYS_PS += $(addprefix $(BUILD)/, $(SRCS_SYS_PS:.c=.o))
+OBJS_DIR += $(sort $(dir $(OBJS_SYS_PS)))
+LIB_SYS_PS_ARCHIVE = $(BUILD)/$(LIB_SYS_PS)
+LIB_SYS_PS_OBJS += $(OBJS_SYS_PS)
 ARCHIVE_FILES += $(LIB_SYS_PS_ARCHIVE)
+endif
 
 all: | $(OBJS_DIR) $(ARCHIVE_FILES)
 $(OBJS_DIR):

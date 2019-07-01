@@ -1,9 +1,13 @@
-# Set verbosity
+###################################################
+# MAKE ARGS
+###################################################
 ifeq ($(v), 1)
 Q =
 else
 Q = @
 endif
+
+DEVELHELP ?= 0
 
 ###################################################
 # Commands
@@ -64,9 +68,13 @@ INC += -I$(TOP)/sys/include
 INC += -I$(TOP)/apps/$(APPS)
 
 DEF += -DCPU_ARCH_CORTEX_$(shell echo $(CORTEXM) | tr a-z A-Z)
+
 ifeq ($(DEVELHELP),1)
-DEF += -DNDEBUG
+DEF += -DDEVELHELP
 endif
+
+# include sys modules
+include sys/module.mk
 
 CFLAGS += -fdata-sections -ffunction-sections -fno-builtin -fshort-enums
 CFLAGS += -O0
@@ -112,13 +120,25 @@ export LIB_APPS = libapps.a
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/core/$(LIB_CORE)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/cpu/$(LIB_CPU)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/board/$(LIB_BOARD)
+ifeq ($(MODULE_STDIO_UART),1)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_STDIO_UART)
+endif
+ifeq ($(MODULE_SYSCALLS),1)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_SYSCALLS)
+endif
+ifeq ($(MODULE_TSRB),1)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_TSRB)
+endif
+ifeq ($(MODULE_ISRPIPE),1)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_ISRPIPE)
+endif
+ifeq ($(MODULE_SHELL),1)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_SHELL)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_SHELL_COMMANDS)
+endif
+ifeq ($(MODULE_PS),1)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_PS)
+endif
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/apps/$(LIB_APPS)
 
 ###################################################
