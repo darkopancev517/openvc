@@ -28,7 +28,7 @@ enum {
 #define LOG_INFO(...) LOG(LOG_INFO, __VA_ARGS__)
 #define LOG_DEBUG(...) LOG(LOG_DEBUG, __VA_ARGS__)
 
-void log_write(unsigned level, const char *format, ...);
+#define log_write(level, ...) printf(__VA_ARGS__);
 
 #ifdef __cplusplus
 }

@@ -19,7 +19,7 @@ extern "C" {
 #endif
 
 #ifndef ISR_STACKSIZE
-#define ISR_STACKSIZE (512)
+#define ISR_STACKSIZE (1024)
 #endif
 
 /* ARM Cortex-M specific CPU configuration */
@@ -27,7 +27,7 @@ extern "C" {
 
 #define CPU_IRQ_NUMOF (64U)
 
-/* NVIC use 8 priority levels */
+/* NVIC use 64 priority levels */
 #define __NVIC_PRIO_BITS (6U)
 
 typedef enum {

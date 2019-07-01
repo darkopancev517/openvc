@@ -1,9 +1,9 @@
 #include <stdio.h>
 
+#include "assert.h"
+
 void assert_failure(const char *file, unsigned line)
 {
-    printf("ASSERT FAILED: %s:%u\n", file, line); \
-    extern unsigned irq_disable(void); \
-    irq_disable(); \
-    for ( ;; ); \
+    printf("%s:%u => ", file, line); \
+    core_panic(PANIC_ASSERT_FAIL, assert_crash_message); \
 }
