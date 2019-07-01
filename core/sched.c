@@ -62,7 +62,7 @@ int __attribute__((used)) sched_run(void)
     return 1;
 }
 
-void sched_set_status(thread_t *process, thread_state_t status)
+void sched_set_status(thread_t *process, thread_status_t status)
 {
     if (status >= STATUS_ON_RUNQUEUE) {
         if (!(process->status >= STATUS_ON_RUNQUEUE)) {

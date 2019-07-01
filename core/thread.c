@@ -26,7 +26,8 @@ int thread_getstatus(kernel_pid_t pid)
 
 const char *thread_getname(kernel_pid_t pid)
 {
-    (void) pid;
+    volatile thread_t *thread = thread_get(pid);
+    return thread ? thread->name : NULL;
     return NULL;
 }
 
@@ -99,6 +100,20 @@ void thread_add_to_list(list_node_t *list, thread_t *thread)
     list->next = new_node;
 }
 
+uintptr_t thread_measure_stack_free(char *stack)
+{
+    uintptr_t *stackp = (uintptr_t *)stack;
+
+    /* assume that the comparison fails before or after end of stack */
+    /* assume that the stack grows "downwards" */
+    while (*stackp == (uintptr_t) stackp) {
+        stackp++;
+    }
+
+    uintptr_t space_free = (uintptr_t) stackp - (uintptr_t) stack;
+    return space_free;
+}
+
 kernel_pid_t thread_create(char *stack,
                            int stacksize,
                            char priority,
@@ -111,7 +126,7 @@ kernel_pid_t thread_create(char *stack,
         return -EINVAL;
     }
 
-    (void) name;
+    int total_stacksize = stacksize;
 
     /* align the stack on 16/32bit boundary */
     uintptr_t misalignment = (uintptr_t) stack % ALIGN_OF(void *);
@@ -137,6 +152,20 @@ kernel_pid_t thread_create(char *stack,
     /* allocate our thread control block at the top of our stackspace */
     thread_t *cb = (thread_t *) (stack + stacksize);
 
+    if (flags & THREAD_CREATE_STACKTEST) {
+        /* assign each int of the stack the value of it's address */
+        uintptr_t *stackmax = (uintptr_t *) (stack + stacksize);
+        uintptr_t *stackp = (uintptr_t *) stack;
+
+        while (stackp < stackmax) {
+            *stackp = (uintptr_t) stackp;
+            stackp++;
+        }
+    } else {
+        /* create stack guard */
+        *(uintptr_t *) stack = (uintptr_t) stack;
+    }
+
     unsigned state = irq_disable();
 
     kernel_pid_t pid = KERNEL_PID_UNDEF;
@@ -158,6 +187,10 @@ kernel_pid_t thread_create(char *stack,
 
     cb->pid = pid;
     cb->sp = thread_stack_init(function, arg, stack, stacksize);
+
+    cb->stack_start = stack;
+    cb->stack_size = total_stacksize;
+    cb->name = name;
 
     cb->priority = priority;
     cb->status = STATUS_STOPPED;

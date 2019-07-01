@@ -14,10 +14,13 @@ typedef void *(*thread_task_func_t)(void *arg);
 
 struct _thread {
     char *sp;
-    thread_state_t status;
+    thread_status_t status;
     uint8_t priority;
     kernel_pid_t pid;
     clist_node_t rq_entry;
+    char *stack_start;
+    const char *name;
+    int stack_size;
 };
 
 #ifndef THREAD_STACKSIZE_DEFAULT
@@ -90,6 +93,11 @@ struct _thread {
  * debugging and profiling purposes)
  */
 #define THREAD_CREATE_STACKTEST         (8)
+
+/**
+ * Measures the stack usage of a stack.
+ */
+uintptr_t thread_measure_stack_free(char *stack);
 
 /**
  * Creates a new thread.

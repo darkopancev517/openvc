@@ -31,11 +31,11 @@ typedef enum {
     STATUS_RUNNING,                 /* currently running                    */
     STATUS_PENDING,                 /* waiting to be scheduled to run       */
     STATUS_NUMOF                    /* number of supported thread states    */
-} thread_state_t;
+} thread_status_t;
 
-#define STATUS_ON_RUNQUEUE      STATUS_RUNNING
+#define STATUS_ON_RUNQUEUE STATUS_RUNNING
 
-#define STATUS_NOT_FOUND ((thread_state_t)-1)
+#define STATUS_NOT_FOUND ((thread_status_t)-1)
 
 /**
  * The number of thread priority levels
@@ -46,7 +46,7 @@ typedef enum {
 
 int sched_run(void);
 
-void sched_set_status(thread_t *process, thread_state_t status);
+void sched_set_status(thread_t *process, thread_status_t status);
 
 void sched_switch(uint16_t other_prio);
 

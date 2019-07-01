@@ -103,6 +103,7 @@ export LIB_SYS_TSRB = libsys_tsrb.a
 export LIB_SYS_ISRPIPE = libsys_isrpipe.a
 export LIB_SYS_SHELL = libsys_shell.a
 export LIB_SYS_SHELL_COMMANDS = libsys_shell_commands.a
+export LIB_SYS_PS = libsys_ps.a
 export LIB_APPS = libapps.a
 
 ###################################################
@@ -117,6 +118,7 @@ FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_TSRB)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_ISRPIPE)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_SHELL)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_SHELL_COMMANDS)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_PS)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/apps/$(LIB_APPS)
 
 ###################################################
