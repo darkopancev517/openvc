@@ -20,8 +20,6 @@ static const shell_command_t user_command_list[] = {
 
 int main(void)
 {
-    printf("shell is run\n");
-
     shell_run(user_command_list, shell_line_buf, sizeof(shell_line_buf));
 
     /* Note: if user don't have `user_command_list` use NULL instead */

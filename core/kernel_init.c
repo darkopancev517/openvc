@@ -15,6 +15,8 @@ static void *main_thread(void *arg)
 {
     (void) arg;
 
+    printf("\n\nkernel started (version: 0.0.1)\n\n");
+
     main();
     return NULL;
 }
