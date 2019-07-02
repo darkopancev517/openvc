@@ -10,6 +10,7 @@ endif
 MODULE_STDIO_UART ?= 1
 MODULE_SYSCALLS ?= 1
 MODULE_TSRB ?= 1
+MODULE_SCHEDSTATISTICS ?= 0
 
 ###################################################
 # SYSTEM MODULES COMPILER FLAGS DEFINITION
@@ -37,4 +38,8 @@ endif
 
 ifeq ($(MODULE_TSRB),1)
 DEF += -DMODULE_TRSB
+endif
+
+ifeq ($(MODULE_SCHEDSTATISTICS),1)
+DEF += -DMODULE_SCHEDSTATISTICS
 endif

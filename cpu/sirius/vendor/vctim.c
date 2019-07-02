@@ -53,40 +53,30 @@ struct VCTIM_REG_SPACE {
 void vctim_config_reset(uint8_t tim)
 {
     if ((tim < TIM0) || (tim > TIM3)) return;
-
     volatile struct VCTIM_REG_SPACE *reg_space = (volatile struct VCTIM_REG_SPACE *)VCREG_BASE_TIM(tim);
-
     reg_space->CTRL.value = 0;
-
     reg_space->INTSTS.fields.INTSTS = 1; // clear tim interrupt status register
 }
 
 void vctim_config_clock_source(uint8_t tim, uint8_t clksrc)
 {
     if ((tim < TIM0) || (tim > TIM3)) return;
-
     if ((clksrc != TIM_CLKSRC_INTERNAL) || (clksrc != TIM_CLKSRC_EXTERNAL)) return;
-
     volatile struct VCTIM_REG_SPACE *reg_space = (volatile struct VCTIM_REG_SPACE *)VCREG_BASE_TIM(tim);
-
     reg_space->CTRL.fields.EXTCLK = clksrc;
 }
 
 void vctim_config_external_clock_gate(uint8_t tim, bool state)  // use external clock as clock enable
 {
     if ((tim < TIM0) || (tim > TIM3)) return;
-
     volatile struct VCTIM_REG_SPACE *reg_space = (volatile struct VCTIM_REG_SPACE *)VCREG_BASE_TIM(tim);
-
     reg_space->CTRL.fields.EXTEN = (state == true) ? 1 : 0;
 }
 
 void vctim_config_reload_value(uint8_t tim, uint32_t reload)
 {
     if ((tim < TIM0) || (tim > TIM3)) return;
-
     volatile struct VCTIM_REG_SPACE *reg_space = (volatile struct VCTIM_REG_SPACE *)VCREG_BASE_TIM(tim);
-
     reg_space->RELOAD.value = reload;
     reg_space->CURRENT.value = reload;
 }
@@ -94,71 +84,55 @@ void vctim_config_reload_value(uint8_t tim, uint32_t reload)
 void vctim_config_enable_int(uint8_t tim)
 {
     if ((tim < TIM0) || (tim > TIM3)) return;
-
     volatile struct VCTIM_REG_SPACE *reg_space = (volatile struct VCTIM_REG_SPACE *)VCREG_BASE_TIM(tim);
-
     reg_space->CTRL.fields.INTEN = 1;
 }
 
 void vctim_config_disable_int(uint8_t tim)
 {
     if ((tim < TIM0) || (tim > TIM3)) return;
-
     volatile struct VCTIM_REG_SPACE *reg_space = (volatile struct VCTIM_REG_SPACE *)VCREG_BASE_TIM(tim);
-
     reg_space->CTRL.fields.INTEN = 0;
 }
 
 void vctim_enable(uint8_t tim)
 {
     if ((tim < TIM0) || (tim > TIM3)) return;
-
     volatile struct VCTIM_REG_SPACE *reg_space = (volatile struct VCTIM_REG_SPACE *)VCREG_BASE_TIM(tim);
-
     reg_space->CTRL.fields.EN = 1;
 }
 
 void vctim_disable(uint8_t tim)
 {
     if ((tim < TIM0) || (tim > TIM3)) return;
-
     volatile struct VCTIM_REG_SPACE *reg_space = (volatile struct VCTIM_REG_SPACE *)VCREG_BASE_TIM(tim);
-
     reg_space->CTRL.fields.EN = 0;
 }
 
 int vctim_get_int(uint8_t tim)
 {
     if ((tim < TIM0) || (tim > TIM3)) return 0;
-
     volatile struct VCTIM_REG_SPACE *reg_space = (volatile struct VCTIM_REG_SPACE *)VCREG_BASE_TIM(tim);
-
     return (reg_space->INTSTS.fields.INTSTS == 1) ? 1 : 0;;
 }
 
 void vctim_clear_int(uint8_t tim)
 {
     if ((tim < TIM0) || (tim > TIM3)) return;
-
     volatile struct VCTIM_REG_SPACE *reg_space = (volatile struct VCTIM_REG_SPACE *)VCREG_BASE_TIM(tim);
-
     reg_space->INTSTS.fields.INTSTS = 1;
 }
 
 uint32_t vctim_get_value(uint8_t tim)
 {
     if ((tim < TIM0) || (tim > TIM3)) return 0;
-
     volatile struct VCTIM_REG_SPACE *reg_space = (volatile struct VCTIM_REG_SPACE *)VCREG_BASE_TIM(tim);
-
     return reg_space->CURRENT.value;
 }
 
 uint32_t vctim_get_reload(uint8_t tim)
 {
     if ((tim < TIM0) || (tim > TIM3)) return 0;
-
     volatile struct VCTIM_REG_SPACE *reg_space = (volatile struct VCTIM_REG_SPACE *)VCREG_BASE_TIM(tim);
-
     return reg_space->RELOAD.value;
 }
