@@ -108,6 +108,7 @@ export LIB_BOARD = libboard.a
 export LIB_SYS_STDIO_UART = libsys_stdio_uart.a
 export LIB_SYS_SYSCALLS = libsys_syscalls.a
 export LIB_SYS_TSRB = libsys_tsrb.a
+export LIB_SYS_XTIMER = libsys_xtimer.a
 export LIB_SYS_ISRPIPE = libsys_isrpipe.a
 export LIB_SYS_SHELL = libsys_shell.a
 export LIB_SYS_SHELL_COMMANDS = libsys_shell_commands.a
@@ -128,6 +129,9 @@ FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_SYSCALLS)
 endif
 ifeq ($(MODULE_TSRB),1)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_TSRB)
+endif
+ifeq ($(MODULE_XTIMER),1)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_XTIMER)
 endif
 ifeq ($(MODULE_ISRPIPE),1)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_ISRPIPE)

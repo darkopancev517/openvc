@@ -130,6 +130,13 @@ uint32_t vctim_get_value(uint8_t tim)
     return reg_space->CURRENT.value;
 }
 
+void vctim_set_value(uint8_t tim, uint32_t value)
+{
+    if ((tim < TIM0) || (tim > TIM3)) return;
+    volatile struct VCTIM_REG_SPACE *reg_space = (volatile struct VCTIM_REG_SPACE *)VCREG_BASE_TIM(tim);
+    reg_space->CURRENT.value = value;
+}
+
 uint32_t vctim_get_reload(uint8_t tim)
 {
     if ((tim < TIM0) || (tim > TIM3)) return 0;

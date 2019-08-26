@@ -1,5 +1,14 @@
 include module.mk
 
+ifeq ($(MODULE_XTIMER),1)
+SRCS_SYS_XTIMER += $(wildcard xtimer/*.c)
+OBJS_SYS_XTIMER += $(addprefix $(BUILD)/, $(SRCS_SYS_XTIMER:.c=.o))
+OBJS_DIR += $(sort $(dir $(OBJS_SYS_XTIMER)))
+LIB_SYS_XTIMER_ARCHIVE = $(BUILD)/$(LIB_SYS_XTIMER)
+LIB_SYS_XTIMER_OBJS += $(OBJS_SYS_XTIMER)
+ARCHIVE_FILES += $(LIB_SYS_XTIMER_ARCHIVE)
+endif
+
 ifeq ($(MODULE_ISRPIPE),1)
 SRCS_SYS_ISRPIPE += $(wildcard isrpipe/*.c)
 OBJS_SYS_ISRPIPE += $(addprefix $(BUILD)/, $(SRCS_SYS_ISRPIPE:.c=.o))
@@ -74,6 +83,8 @@ $(BUILD)/%.a:
 	$(ECHO) "AR $@"
 	$(AR) -cr $@ $^
 
+$(LIB_SYS_XTIMER_ARCHIVE): $(LIB_SYS_XTIMER_OBJS)
+
 $(LIB_SYS_ISRPIPE_ARCHIVE): $(LIB_SYS_ISRPIPE_OBJS)
 
 $(LIB_SYS_STDIO_UART_ARCHIVE): $(LIB_SYS_STDIO_UART_OBJS)
@@ -88,6 +99,7 @@ $(LIB_SYS_SHELL_COMMANDS_ARCHIVE): $(LIB_SYS_SHELL_COMMANDS_OBJS)
 
 $(LIB_SYS_PS_ARCHIVE): $(LIB_SYS_PS_OBJS)
 
+-include $(OBJS_SYS_XTIMER:%.o=%.d)
 -include $(OBJS_SYS_ISRPIPE:%.o=%.d)
 -include $(OBJS_SYS_STDIO_UART:%.o=%.d)
 -include $(OBJS_SYS_SYSCALLS:%.o=%.d)

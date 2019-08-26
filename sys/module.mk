@@ -1,20 +1,30 @@
 ###################################################
 # SYSTEM MODULES
 ###################################################
-MODULE_ISRPIPE ?= 1
-MODULE_PS ?= 1
-MODULE_SHELL ?= 1
+export MODULE_CORE_MSG ?= 1
+export MODULE_XTIMER ?= 1
+export MODULE_ISRPIPE ?= 1
+export MODULE_PS ?= 1
+export MODULE_SHELL ?= 1
 ifeq ($(MODULE_SHELL),1)
-MODULE_SHELL_COMMANDS ?= 1
+export MODULE_SHELL_COMMANDS ?= 1
 endif
-MODULE_STDIO_UART ?= 1
-MODULE_SYSCALLS ?= 1
-MODULE_TSRB ?= 1
-MODULE_SCHEDSTATISTICS ?= 0
+export MODULE_STDIO_UART ?= 1
+export MODULE_SYSCALLS ?= 1
+export MODULE_TSRB ?= 1
+export MODULE_SCHEDSTATISTICS ?= 0
 
 ###################################################
 # SYSTEM MODULES COMPILER FLAGS DEFINITION
 ###################################################
+ifeq ($(MODULE_CORE_MSG),1)
+DEF += -DMODULE_CORE_MSG
+endif
+
+ifeq ($(MODULE_XTIMER),1)
+DEF += -DMODULE_XTIMER
+endif
+
 ifeq ($(MODULE_ISRPIPE),1)
 DEF += -DMODULE_ISRPIPE
 endif

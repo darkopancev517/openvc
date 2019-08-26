@@ -1,5 +1,6 @@
 #include "cpu.h"
 #include "vcsoc.h"
+#include "xtimer.h"
 
 void cpu_init(void)
 {
@@ -31,4 +32,7 @@ void cpu_init(void)
 
     /* disable watchdog timer */
     vcwdt_disable();
+
+    /* initialize xtimer */
+    xtimer_init();
 }

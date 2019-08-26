@@ -44,6 +44,8 @@ void vctim_clear_int(uint8_t tim);
 
 uint32_t vctim_get_value(uint8_t tim);
 
+void vctim_set_value(uint8_t tim, uint32_t value);
+
 uint32_t vctim_get_reload(uint8_t tim);
 
 #ifdef __cplusplus

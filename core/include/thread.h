@@ -3,6 +3,7 @@
 
 #include "clist.h"
 #include "cib.h"
+#include "msg.h"
 #include "cpu_conf.h"
 #include "sched.h"
 
@@ -18,6 +19,14 @@ struct _thread {
     uint8_t priority;
     kernel_pid_t pid;
     clist_node_t rq_entry;
+#if defined(MODULE_CORE_MSG)
+    void *wait_data;
+#endif
+#if defined (MODULE_CORE_MSG)
+    list_node_t msg_waiters;
+    cib_t msg_queue;
+    msg_t *msg_array;
+#endif
     char *stack_start;
     const char *name;
     int stack_size;
@@ -192,8 +201,12 @@ void thread_print_stack(void);
 
 static inline int thread_has_msg_queue(const volatile struct _thread *thread)
 {
+#if defined(MODULE_CORE_MSG)
+    return (thread->msg_array != NULL);
+#else
     (void) thread;
     return 0;
+#endif
 }
 
 #ifdef __cplusplus

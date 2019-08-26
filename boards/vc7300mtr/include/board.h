@@ -31,6 +31,10 @@ extern "C" {
 #define STDIO_UART_BAUDRATE             (115200)
 #define STDIO_UART_RX_BUFSIZE           (128)
 
+/* xtimer interface */
+#define XTIMER_DEV                      TIMER_DEV(0)
+#define XTIMER_FREQ_BASE                (1000000)
+
 void board_init(void);
 
 #ifdef __cplusplus

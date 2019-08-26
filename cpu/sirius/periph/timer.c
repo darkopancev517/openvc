@@ -12,6 +12,7 @@ typedef struct {
     uint32_t ccr[TIMER_CHAN];   /* capture compare register */
     uint32_t ier[TIMER_CHAN];   /* interrupt enable register */
     uint32_t cnt;
+    uint32_t freq;
 } timer_regs_t;
 
 static int timer_irqn[TIMER_NUMOF] = {
@@ -52,17 +53,11 @@ int timer_init(tim_t dev, unsigned long freq, timer_cb_t cb, void *arg)
     vctim_config_clock_source(dev, TIM_CLKSRC_INTERNAL);
     vctim_config_external_clock_gate(dev, false);
 
-    /* set reload value */
-    uint32_t reload = vcmisc_get_apb_clk() / freq;
-    vctim_config_reload_value(dev, reload); 
+    /* set timer frequency base */
+    timer_regs[dev].freq = freq;
 
-    /* enable timer interrupt */
-    vctim_config_enable_int(dev);
-    NVIC_EnableIRQ(timer_irqn[dev]);
-
-    /* reset the counter and start the timer */
+    /* reset the counter */
     timer_regs[dev].cnt = 0;
-    vctim_enable(dev);
 
     return 0;
 }
@@ -71,9 +66,16 @@ int timer_set_absolute(tim_t dev, int channel, unsigned int value)
 {
     assert(dev < TIMER_NUMOF);
     assert(channel < TIMER_CHAN);
+    assert(timer_regs[dev].freq != 0);
 
     timer_regs[dev].ccr[channel] = (value & timer_cnt_max);
     timer_regs[dev].ier[channel] = 1;
+
+    uint32_t reload = (vcmisc_get_apb_clk() / timer_regs[dev].freq) * value;
+    vctim_config_reload_value(dev, reload);
+    vctim_set_value(dev, 0);
+
+    timer_start(dev);
 
     return 0;
 }
@@ -88,19 +90,23 @@ int timer_clear(tim_t dev, int channel)
     return 0;
 }
 
-unsigned int timer_read(tim_t dev)
+uint32_t timer_read(tim_t dev)
 {
     assert(dev < TIMER_NUMOF);
-    return (unsigned int)vctim_get_value(dev);
+    return timer_regs[dev].cnt;
 }
 
 void timer_start(tim_t dev)
 {
+    vctim_config_enable_int(dev);
+    NVIC_EnableIRQ(timer_irqn[dev]);
     vctim_enable(dev);
 }
 
 void timer_stop(tim_t dev)
 {
+    vctim_config_disable_int(dev);
+    NVIC_DisableIRQ(timer_irqn[dev]);
     vctim_disable(dev);
 }
 
@@ -109,11 +115,12 @@ static void irq_timer_handler(tim_t dev)
     if (vctim_get_int(dev)) {
         vctim_clear_int(dev);
         timer_regs[dev].cnt += 1;
-        for (unsigned int i = 0; i < TIMER_CHAN; i++) {
-            if ((timer_regs[dev].ccr[i] == timer_regs[dev].cnt) &&
-                (timer_regs[dev].ier[i] == 1)) { 
-                timer_regs[dev].ier[i] = 0;
-                isr_timer_ctx[dev].cb(isr_timer_ctx[dev].arg, i);
+        if (isr_timer_ctx[dev].cb != NULL) {
+            for (unsigned int i = 0; i < TIMER_CHAN; i++) {
+                if ((timer_regs[dev].ccr[i] == timer_regs[dev].cnt) &&
+                    (timer_regs[dev].ier[i] == 1)) { 
+                    isr_timer_ctx[dev].cb(isr_timer_ctx[dev].arg, i);
+                }
             }
         }
     }
