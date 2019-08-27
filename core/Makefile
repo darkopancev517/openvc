@@ -15,8 +15,15 @@ OBJS_CORE += $(addprefix $(BUILD)/,$(SRCS_CORE:.c=.o))
 
 OBJS_DIR += $(sort $(dir $(OBJS_CORE)))
 
+LIB_CORE_PATCH_ARCHIVES = $(wildcard archive/*.a)
+
+ifeq (,$(findstring $(LIB_CORE),$(LIB_CORE_PATCH_ARCHIVES)))
 LIB_CORE_ARCHIVE = $(BUILD)/$(LIB_CORE)
 LIB_CORE_OBJS += $(OBJS_CORE)
+else
+LIB_CORE_ARCHIVE = $(BUILD)/$(LIB_CORE).patch
+LIB_CORE_PATCH += archive/$(LIB_CORE)
+endif
 
 ARCHIVE_FILES += $(LIB_CORE_ARCHIVE)
 
@@ -34,6 +41,11 @@ $(BUILD)/%.a:
 	$(ECHO) "AR $@"
 	$(AR) -cr $@ $^
 
-$(LIB_CORE_ARCHIVE): $(LIB_CORE_OBJS)
+$(BUILD)/%.patch:
+	$(ECHO) "\033[32mPATCH\033[0m $^"
+	$(RM) -f $@
+	$(CP) -f $^ $(BUILD)
+
+$(LIB_CORE_ARCHIVE): $(LIB_CORE_OBJS) $(LIB_CORE_PATCH)
 
 -include $(OBJS_CORE:%.o=%.d)

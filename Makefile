@@ -30,6 +30,7 @@ export MAKE = $(Q)make
 else
 export MAKE = $(Q)make -s
 endif
+export CP = $(Q)cp
 export TOP = $(shell pwd)
 
 OPENVC = openvc
