@@ -1,6 +1,6 @@
 SRCS_BOARD += $(wildcard $(BOARD)/*.c)
 
-OBJS_BOARD += $(addprefix $(BUILD)/, $(SRCS_BOARD:.c=.o))
+OBJS_BOARD += $(addprefix $(BUILD)/,$(SRCS_BOARD:.c=.o))
 
 OBJS_DIR += $(sort $(dir $(OBJS_BOARD)))
 

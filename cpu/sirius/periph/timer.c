@@ -110,6 +110,11 @@ void timer_stop(tim_t dev)
     vctim_disable(dev);
 }
 
+#ifdef MODULE_PKG_CONTIKI_NG
+extern int etimer_pending(void);
+extern void etimer_request_poll(void);
+#endif
+
 static void irq_timer_handler(tim_t dev)
 {
     if (vctim_get_int(dev)) {
@@ -123,6 +128,11 @@ static void irq_timer_handler(tim_t dev)
                 }
             }
         }
+#ifdef MODULE_PKG_CONTIKI_NG
+        if (etimer_pending()) {
+            etimer_request_poll();
+        }
+#endif
     }
     /* check if context switch was requested */
     cortexm_isr_end();

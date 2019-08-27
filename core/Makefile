@@ -11,7 +11,7 @@ ifeq ($(MODULE_CORE_MSG),1)
 SRCS_CORE += msg.c
 endif
 
-OBJS_CORE += $(addprefix $(BUILD)/, $(SRCS_CORE:.c=.o))
+OBJS_CORE += $(addprefix $(BUILD)/,$(SRCS_CORE:.c=.o))
 
 OBJS_DIR += $(sort $(dir $(OBJS_CORE)))
 

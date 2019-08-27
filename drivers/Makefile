@@ -2,8 +2,8 @@ SRCS_DRIVERS_NVSETS += $(wildcard nvsets/*.c)
 SRCS_DRIVERS_CENTAURI += $(wildcard centauri/*.c)
 SRCS_DRIVERS_CENTAURI += $(wildcard centauri/phy/*.c)
 
-OBJS_DRIVERS_NVSETS += $(addprefix $(BUILD)/, $(SRCS_DRIVERS_NVSETS:.c=.o))
-OBJS_DRIVERS_CENTAURI += $(addprefix $(BUILD)/, $(SRCS_DRIVERS_CENTAURI:.c=.o))
+OBJS_DRIVERS_NVSETS += $(addprefix $(BUILD)/,$(SRCS_DRIVERS_NVSETS:.c=.o))
+OBJS_DRIVERS_CENTAURI += $(addprefix $(BUILD)/,$(SRCS_DRIVERS_CENTAURI:.c=.o))
 
 OBJS_DIR += $(sort $(dir $(OBJS_DRIVERS_NVSETS)))
 OBJS_DIR += $(sort $(dir $(OBJS_DRIVERS_CENTAURI)))

@@ -22,7 +22,7 @@
 #include "periph/spi.h"
 #include "nvsets.h"
 
-#define CENT_MSG_EVENT_IRQ 0x10
+#define CENT_MSG_EVENT_IRQ (0x10)
 
 static uint8_t cent_rxbuf[CENTAURI_BUFFER_SIZE];
 static cent_dataset_t cent_data;

@@ -15,6 +15,8 @@ void irq_restore(unsigned state);
 
 int irq_is_in(void);
 
+int irq_is_enable(void);
+
 #ifdef __cplusplus
 }
 #endif

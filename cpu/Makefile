@@ -4,7 +4,7 @@ SRCS_CPU += $(wildcard $(CPU)/*.c)
 SRCS_CPU += $(wildcard $(CPU)/vendor/*.c)
 SRCS_CPU += $(wildcard $(CPU)/periph/*.c)
 
-OBJS_CPU += $(addprefix $(BUILD)/, $(SRCS_CPU:.c=.o))
+OBJS_CPU += $(addprefix $(BUILD)/,$(SRCS_CPU:.c=.o))
 
 OBJS_DIR += $(sort $(dir $(OBJS_CPU)))
 

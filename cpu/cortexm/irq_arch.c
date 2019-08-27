@@ -28,3 +28,8 @@ int irq_is_in(void)
 {
     return (__get_IPSR() & 0xFF);
 }
+
+int irq_is_enable(void)
+{
+    return __get_PRIMASK() ? 1 : 0;
+}

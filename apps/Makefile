@@ -1,6 +1,6 @@
 SRCS_APPS += $(wildcard $(APPS)/*.c)
 
-OBJS_APPS += $(addprefix $(BUILD)/, $(SRCS_APPS:.c=.o))
+OBJS_APPS += $(addprefix $(BUILD)/,$(SRCS_APPS:.c=.o))
 
 OBJS_DIR += $(sort $(dir $(OBJS_APPS)))
 

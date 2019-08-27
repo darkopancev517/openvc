@@ -1,0 +1,4 @@
+[submodule "pkg/contiki-ng/repo"]
+	path = pkg/contiki-ng/repo
+	url = https://github.com/contiki-ng/contiki-ng.git
+	branch = master

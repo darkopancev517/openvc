@@ -8,6 +8,10 @@
 #include "shell.h"
 #include "shell_commands.h"
 
+#ifdef MODULE_PKG_CONTIKI_NG
+extern void serial_line_input(int argc, char **argv);
+#endif
+
 #define CMD_HIST_MAX_INDEX  (5)
 #define CMD_HIST_BUF_SIZE   (256)
 
@@ -192,8 +196,15 @@ static void handle_input_line(const shell_command_t *command_list, char *line)
     } else {
         if (strcmp("help", argv[0]) == 0) {
             print_help(command_list);
+#ifdef MODULE_PKG_CONTIKI_NG
+            serial_line_input(argc, argv);
+#endif
         } else {
+#ifdef MODULE_PKG_CONTIKI_NG
+            serial_line_input(argc, argv);
+#else
             printf("shell: command not found: %s\n", argv[0]);
+#endif
         }
     }
 }

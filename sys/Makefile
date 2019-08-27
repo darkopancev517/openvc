@@ -2,7 +2,7 @@ include module.mk
 
 ifeq ($(MODULE_XTIMER),1)
 SRCS_SYS_XTIMER += $(wildcard xtimer/*.c)
-OBJS_SYS_XTIMER += $(addprefix $(BUILD)/, $(SRCS_SYS_XTIMER:.c=.o))
+OBJS_SYS_XTIMER += $(addprefix $(BUILD)/,$(SRCS_SYS_XTIMER:.c=.o))
 OBJS_DIR += $(sort $(dir $(OBJS_SYS_XTIMER)))
 LIB_SYS_XTIMER_ARCHIVE = $(BUILD)/$(LIB_SYS_XTIMER)
 LIB_SYS_XTIMER_OBJS += $(OBJS_SYS_XTIMER)
@@ -11,7 +11,7 @@ endif
 
 ifeq ($(MODULE_ISRPIPE),1)
 SRCS_SYS_ISRPIPE += $(wildcard isrpipe/*.c)
-OBJS_SYS_ISRPIPE += $(addprefix $(BUILD)/, $(SRCS_SYS_ISRPIPE:.c=.o))
+OBJS_SYS_ISRPIPE += $(addprefix $(BUILD)/,$(SRCS_SYS_ISRPIPE:.c=.o))
 OBJS_DIR += $(sort $(dir $(OBJS_SYS_ISRPIPE)))
 LIB_SYS_ISRPIPE_ARCHIVE = $(BUILD)/$(LIB_SYS_ISRPIPE)
 LIB_SYS_ISRPIPE_OBJS += $(OBJS_SYS_ISRPIPE)
@@ -20,7 +20,7 @@ endif
 
 ifeq ($(MODULE_STDIO_UART),1)
 SRCS_SYS_STDIO_UART += $(wildcard stdio_uart/*.c)
-OBJS_SYS_STDIO_UART += $(addprefix $(BUILD)/, $(SRCS_SYS_STDIO_UART:.c=.o))
+OBJS_SYS_STDIO_UART += $(addprefix $(BUILD)/,$(SRCS_SYS_STDIO_UART:.c=.o))
 OBJS_DIR += $(sort $(dir $(OBJS_SYS_STDIO_UART)))
 LIB_SYS_STDIO_UART_ARCHIVE = $(BUILD)/$(LIB_SYS_STDIO_UART)
 LIB_SYS_STDIO_UART_OBJS += $(OBJS_SYS_STDIO_UART)
@@ -29,7 +29,7 @@ endif
 
 ifeq ($(MODULE_SYSCALLS),1)
 SRCS_SYS_SYSCALLS += $(wildcard syscalls/*.c)
-OBJS_SYS_SYSCALLS += $(addprefix $(BUILD)/, $(SRCS_SYS_SYSCALLS:.c=.o))
+OBJS_SYS_SYSCALLS += $(addprefix $(BUILD)/,$(SRCS_SYS_SYSCALLS:.c=.o))
 OBJS_DIR += $(sort $(dir $(OBJS_SYS_SYSCALLS)))
 LIB_SYS_SYSCALLS_ARCHIVE = $(BUILD)/$(LIB_SYS_SYSCALLS)
 LIB_SYS_SYSCALLS_OBJS += $(OBJS_SYS_SYSCALLS)
@@ -38,7 +38,7 @@ endif
 
 ifeq ($(MODULE_TSRB),1)
 SRCS_SYS_TSRB += $(wildcard tsrb/*.c)
-OBJS_SYS_TSRB += $(addprefix $(BUILD)/, $(SRCS_SYS_TSRB:.c=.o))
+OBJS_SYS_TSRB += $(addprefix $(BUILD)/,$(SRCS_SYS_TSRB:.c=.o))
 OBJS_DIR += $(sort $(dir $(OBJS_SYS_TSRB)))
 LIB_SYS_TSRB_ARCHIVE = $(BUILD)/$(LIB_SYS_TSRB)
 LIB_SYS_TSRB_OBJS += $(OBJS_SYS_TSRB)
@@ -47,9 +47,17 @@ endif
 
 ifeq ($(MODULE_SHELL),1)
 SRCS_SYS_SHELL += $(wildcard shell/*.c)
-SRCS_SYS_SHELL_COMMANDS += $(wildcard shell/commands/*.c)
-OBJS_SYS_SHELL += $(addprefix $(BUILD)/, $(SRCS_SYS_SHELL:.c=.o))
-OBJS_SYS_SHELL_COMMANDS += $(addprefix $(BUILD)/, $(SRCS_SYS_SHELL_COMMANDS:.c=.o))
+SRCS_SYS_SHELL_COMMANDS += shell/commands/shell_commands.c
+SRCS_SYS_SHELL_COMMANDS += shell/commands/cmd_mem.c
+SRCS_SYS_SHELL_COMMANDS += shell/commands/cmd_reboot.c
+ifeq ($(MODULE_PS),1)
+SRCS_SYS_SHELL_COMMANDS += shell/commands/cmd_ps.c
+endif
+ifeq ($(MODULE_DRIVERS_CENTAURI),1)
+SRCS_SYS_SHELL_COMMANDS += shell/commands/cmd_cent.c
+endif
+OBJS_SYS_SHELL += $(addprefix $(BUILD)/,$(SRCS_SYS_SHELL:.c=.o))
+OBJS_SYS_SHELL_COMMANDS += $(addprefix $(BUILD)/,$(SRCS_SYS_SHELL_COMMANDS:.c=.o))
 OBJS_DIR += $(sort $(dir $(OBJS_SYS_SHELL)))
 OBJS_DIR += $(sort $(dir $(OBJS_SYS_SHELL_COMMANDS)))
 LIB_SYS_SHELL_ARCHIVE = $(BUILD)/$(LIB_SYS_SHELL)
@@ -62,7 +70,7 @@ endif
 
 ifeq ($(MODULE_PS),1)
 SRCS_SYS_PS += $(wildcard ps/*.c)
-OBJS_SYS_PS += $(addprefix $(BUILD)/, $(SRCS_SYS_PS:.c=.o))
+OBJS_SYS_PS += $(addprefix $(BUILD)/,$(SRCS_SYS_PS:.c=.o))
 OBJS_DIR += $(sort $(dir $(OBJS_SYS_PS)))
 LIB_SYS_PS_ARCHIVE = $(BUILD)/$(LIB_SYS_PS)
 LIB_SYS_PS_OBJS += $(OBJS_SYS_PS)
