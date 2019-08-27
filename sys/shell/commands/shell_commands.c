@@ -9,6 +9,7 @@ extern void cmd_ww_handler(int argc, char **argv);
 #ifdef MODULE_PS
 extern void cmd_ps_handler(int argc, char **argv);
 #endif
+extern void cmd_cent_handler(int argc, char **argv);
 
 const shell_command_t _shell_command_list[] = {
     { "reboot", "reboot the mcu.", cmd_reboot_handler },
@@ -18,5 +19,6 @@ const shell_command_t _shell_command_list[] = {
 #ifdef MODULE_PS
     { "ps", "print information about running threads.", cmd_ps_handler },
 #endif
+    {"cent", "centauri commands", cmd_cent_handler},
     { NULL, NULL, NULL }
 };

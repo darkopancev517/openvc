@@ -4,6 +4,8 @@
 #include "cpu.h"
 #include "periph/uart.h"
 #include "periph/gpio.h"
+#include "periph/spi.h"
+#include "periph/timer.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,6 +26,12 @@ extern "C" {
 #define BOARD_RXLED_ON()                gpio_clear(BOARD_RXLED_PIN)
 #define BOARD_RXLED_OFF()               gpio_set(BOARD_RXLED_PIN)
 #define BOARD_RXLED_TOGGLE()            gpio_toggle(BOARD_RXLED_PIN)
+
+/* board spi interface with centauri */
+#define BOARD_CENTAURI_SPI_DEV          SPI_DEV(2)
+#define BOARD_CENTAURI_SPI_CS_PIN       GPIO_PIN(PORTC, 4)
+#define BOARD_CENTAURI_RESET_PIN        GPIO_PIN(PORTC, 5)
+#define BOARD_CENTAURI_INT_PIN          GPIO_PIN(PORTA, 14)
 
 /* stdio uart interface */
 

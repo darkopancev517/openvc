@@ -105,6 +105,8 @@ FIRMWARE_BUILD = $(BUILD)/$(FIRMWARE)
 export LIB_CORE = libcore.a
 export LIB_CPU = libcpu.a
 export LIB_BOARD = libboard.a
+export LIB_DRIVERS_NVSETS = libdrivers_nvsets.a
+export LIB_DRIVERS_CENTAURI = libdrivers_centauri.a
 export LIB_SYS_STDIO_UART = libsys_stdio_uart.a
 export LIB_SYS_SYSCALLS = libsys_syscalls.a
 export LIB_SYS_TSRB = libsys_tsrb.a
@@ -121,6 +123,8 @@ export LIB_APPS = libapps.a
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/core/$(LIB_CORE)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/cpu/$(LIB_CPU)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/board/$(LIB_BOARD)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/drivers/$(LIB_DRIVERS_NVSETS)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/drivers/$(LIB_DRIVERS_CENTAURI)
 ifeq ($(MODULE_STDIO_UART),1)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_STDIO_UART)
 endif
@@ -163,6 +167,7 @@ FIRMWARE_OBJS:
 	$(MAKE) -C core BUILD="$(FIRMWARE_BUILD)/core" CFLAGS="$(CFLAGS) -MD -MP"
 	$(MAKE) -C cpu BUILD="$(FIRMWARE_BUILD)/cpu" CFLAGS="$(CFLAGS) -MD -MP"
 	$(MAKE) -C boards BUILD="$(FIRMWARE_BUILD)/board" CFLAGS="$(CFLAGS) -MD -MP"
+	$(MAKE) -C drivers BUILD="$(FIRMWARE_BUILD)/drivers" CFLAGS="$(CFLAGS) -MD -MP"
 	$(MAKE) -C sys BUILD="$(FIRMWARE_BUILD)/sys" CFLAGS="$(CFLAGS) -MD -MP"
 	$(MAKE) -C apps BUILD="$(FIRMWARE_BUILD)/apps"  CFLAGS="$(CFLAGS) -MD -MP"
 
