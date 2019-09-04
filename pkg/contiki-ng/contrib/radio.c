@@ -97,7 +97,7 @@ PROCESS_THREAD(centauri_process, ev, data)
         NETSTACK_MAC.input();
         radio_pktcount--;
         /* make sure there is no pending pkt, otherwise we need rxpkt ringbuffer */
-        assert(radio_pktcount == 0);
+        //assert(radio_pktcount == 0);
     }
 
     PROCESS_END();

@@ -9,7 +9,7 @@ void clock_init(void)
 
 clock_time_t clock_time(void)
 {
-    return (clock_time_t)xtimer_now().ticks32;
+    return (clock_time_t)(xtimer_now().ticks32 / 1000);
 }
 
 unsigned long clock_seconds(void)

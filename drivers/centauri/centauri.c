@@ -74,6 +74,8 @@ cent_dataset_t *centauri_init(void)
 
     cent_spi_release();
 
+    xtimer_usleep(2000); /* give some delay to receive centauri alive status */
+
     /* stage 2 -------------------------------------------------------------- */
 
     cent_spi_acquire();
@@ -116,9 +118,9 @@ cent_dataset_t *centauri_init(void)
 void centauri_reset(void)
 {
     gpio_clear(BOARD_CENTAURI_RESET_PIN);
-    xtimer_msleep(2);
+    xtimer_usleep(2000);
     gpio_set(BOARD_CENTAURI_RESET_PIN);
-    xtimer_msleep(10);
+    xtimer_usleep(10000);
 }
 
 void centauri_rx(void)

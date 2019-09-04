@@ -92,13 +92,13 @@ void cent_cmd_shutdown(void)
 void cent_cmd_cal_32k(void)
 {
     cent_send_cmd(RF_HCMD_CALIB_32K, 1, 0);
-    xtimer_msleep(20);
+    xtimer_usleep(20000);
 }
 
 void cent_cmd_cal_4m(void)
 {
     cent_send_cmd(RF_HCMD_CALIB_4M, 1, 0);
-    xtimer_msleep(2);
+    xtimer_usleep(2000);
 }
 
 void cent_cmd_cal_vco(void)
@@ -114,21 +114,21 @@ void cent_cmd_cal_iq(void)
         /* Gear shift bias setting */
         GearShiftBiasSetForIqCal();
         /* TBD IQ no hand shake */
-        xtimer_msleep(6);
+        xtimer_usleep(6000);
         iqc_a_b_pmu = (CentauriCsrRead(0x4002c0cc)&0x7fff7fff);
         iqc_c_pmu = (CentauriCsrRead(0x4002c0d0)&0x7fff);
 		/* Gear shfit  DCOC setting  */
         TransceiverDcocSetting();
         cent_spi_writeW(0x20010074, 0x0);
     } else {
-        xtimer_msleep(6);
+        xtimer_usleep(6000);
     }
 }
 
 void cent_cmd_cal_rxadc(void)
 {
     cent_send_cmd(RF_HCMD_CALIB_RX_ADC, 0, 0);
-    xtimer_msleep(2);
+    xtimer_usleep(2000);
 }
 
 void cent_cmd_period_config(uint32_t period, uint32_t tolerance)
@@ -211,14 +211,14 @@ void cent_cmd_txpwr(int16_t txpwr)
     if (txpwr < 0) {
         txpwr = (txpwr * -1) + 0x80;
     }
-    xtimer_msleep(1);
+    xtimer_usleep(100);
     cent_send_cmd(RF_HCMD_TXPWR, (uint16_t)txpwr, 0);
 }
 
 int32_t cent_cmd_rssi(void)
 {
     cent_send_cmd(RF_HCMD_RSSI, 0, 0);
-    xtimer_msleep(1);
+    xtimer_usleep(CCA_DELAY*20+20);
     return cent_get_rssi();
 }
 
@@ -233,7 +233,7 @@ void cent_cmd_rssi_offset(int16_t offset)
     }
     offset = (offset * 8) & 0xff;
     cent_send_cmd(RF_HCMD_RSSI_OFFSET, (uint16_t)offset, 0);
-    xtimer_msleep(1);
+    xtimer_usleep(100);
 }
 
 uint32_t cent_cmd_set_channel(uint32_t chn_band)
@@ -244,7 +244,7 @@ uint32_t cent_cmd_set_channel(uint32_t chn_band)
 #if HOST_IF_ON
     rx_rf_channel_read = chn_band;
 #endif
-    xtimer_msleep(1);
+    xtimer_usleep(400);
     return status;
 }
 
@@ -256,7 +256,7 @@ uint32_t cent_cmd_read_channel(void)
 void cent_cmd_set_modi(uint32_t modi)
 {
     cent_send_cmd(RF_HCMD_MODI, modi, 0);
-    xtimer_msleep(1);
+    xtimer_usleep(200);
     cent_cmd_rx(SYS_RX);
     FilterIfSetting();
 }
@@ -272,7 +272,7 @@ void cent_cmd_set_rate(uint32_t rate, uint32_t clk_set)
     }
     cent_spi_writeW(CENT_RTN_CMD_ACK_PARAM, rate);
     cent_send_cmd(RF_HCMD_RATE, clk_set, 0);
-    xtimer_msleep(1);
+    xtimer_usleep(200);
     FilterIfSetting();
     cent_set_adc_status(CentauriCsrRead(0x4002800c));
  	//Fan
@@ -327,20 +327,20 @@ void cent_cmd_rx16mhz(uint16_t rx16m)
 void cent_cmd_pa_select(uint16_t pa)
 {
     cent_send_cmd(RF_HCMD_PASEL, pa, 0);
-    xtimer_msleep(1);
+    xtimer_usleep(100);
 }
 
 void cent_cmd_dctune(uint16_t dctune)
 {
     cent_send_cmd(RF_HCMD_DCTUNE, dctune, 0);
-    xtimer_msleep(1);
+    xtimer_usleep(100);
 }
 
 uint16_t cent_cmd_read_dctune(void)
 {
 	uint32_t dctune;
     cent_send_cmd(RF_HCMD_DCTUNE, 0x80, 0);
-    xtimer_msleep(1);
+    xtimer_usleep(1000);
 	cent_spi_readW(CENT_RTN_CMD_ACK_PARAM, &dctune);
 	return (uint16_t)(dctune&0xffff);
 }
@@ -349,7 +349,7 @@ uint16_t cent_cmd_saradc(uint16_t vin_sel)
 {
 	uint32_t value;
     cent_send_cmd(RF_HCMD_ADC, vin_sel, 0);
-    xtimer_msleep(1);
+    xtimer_usleep(1000);
 	cent_spi_readW(CENT_RTN_CMD_ACK_PARAM, &value);
 	return (uint16_t)(value&0xffff);
 }
