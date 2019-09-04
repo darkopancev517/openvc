@@ -24,6 +24,8 @@
 
 #define CENT_MSG_EVENT_IRQ (0x10)
 
+#define CENTAURI_TX_TIMEOUT_VALUE (100000ul) /* 100 ms */
+
 static uint8_t cent_rxbuf[CENTAURI_BUFFER_SIZE];
 static cent_dataset_t cent_data;
 
@@ -165,7 +167,7 @@ void centauri_tx(uint8_t *data, uint16_t length)
 
     cent_spi_release();
 
-    uint32_t timeout = xtimer_now().ticks32 + 100;
+    uint32_t timeout = xtimer_now().ticks32 + CENTAURI_TX_TIMEOUT_VALUE;
     while (!cent_data.phytxcmp && timeout > xtimer_now().ticks32);
 
     if (cent_data.phytxcmp != 1 && timeout < xtimer_now().ticks32) {

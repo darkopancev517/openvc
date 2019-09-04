@@ -15,6 +15,8 @@
 #define LOG_MODULE "RADIO"
 #define LOG_LEVEL LOG_LEVEL_RADIO
 
+#define RADIO_ACK_TIMEOUT_VALUE (1 * CLOCK_SECOND)
+
 enum {
     RADIO_BUFFER_SIZE = CENTAURI_PAYLOAD_SIZE,
 };
@@ -173,7 +175,7 @@ static int radio_transmit(unsigned short len)
 
         radio_on();
 
-        uint32_t ack_timeout = clock_time() + 1000;
+        uint32_t ack_timeout = clock_time() + RADIO_ACK_TIMEOUT_VALUE;
         while (!(radio_status & RADIO_ACK_RECEIVED) && ack_timeout > clock_time());
 
         radio_status &= ~RADIO_ACK_WAIT;

@@ -65,6 +65,9 @@ int main(void)
         uint8_t p = 0;
         do {
             p = process_run();
+            if (etimer_pending()) {
+                etimer_request_poll();
+            }
         } while (p > 0);
 #endif
     }

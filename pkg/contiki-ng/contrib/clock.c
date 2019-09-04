@@ -14,7 +14,7 @@ clock_time_t clock_time(void)
 
 unsigned long clock_seconds(void)
 {
-    return (unsigned long)(clock_time() / 1000);
+    return (unsigned long)(clock_time() / CLOCK_CONF_SECOND);
 }
 
 void clock_wait(clock_time_t i)
@@ -24,7 +24,7 @@ void clock_wait(clock_time_t i)
 
 void clock_delay_usec(uint16_t dt)
 {
-    (void) dt;
+    xtimer_usleep(dt);
 }
 
 void clock_delay(unsigned int i)

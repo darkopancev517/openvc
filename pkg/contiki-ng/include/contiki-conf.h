@@ -12,8 +12,8 @@
 extern "C" {
 #endif
 
-#define CLOCK_CONF_SECOND 1000
-#define RTIMER_ARCH_SECOND 1000
+#define CLOCK_CONF_SECOND (1000000ul)
+#define RTIMER_ARCH_SECOND (1000000ul)
 
 #define NETSTACK_CONF_RADIO centauri_driver
 #define centauri_driver_max_payload_len CENTAURI_PAYLOAD_SIZE
