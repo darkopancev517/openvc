@@ -41,7 +41,10 @@ extern "C" {
 
 /* xtimer interface */
 #define XTIMER_DEV                      TIMER_DEV(0)
-#define XTIMER_FREQ_BASE                (1000000)
+#define XTIMER_CHAN                     (0)
+#define XTIMER_HZ                       (1000000)
+#define TIMER_0_MAX_VALUE               (0xffff)
+#define XTIMER_WIDTH                    (16)
 
 void board_init(void);
 

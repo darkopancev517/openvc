@@ -156,6 +156,18 @@ extern "C" {
 #define PWM_OUTSEL2 2
 #endif
 
+#ifndef PWM_CCR0
+#define PWM_CCR0 0
+#endif
+
+#ifndef PWM_CCR1
+#define PWM_CCR1 1
+#endif
+
+#ifndef PWM_CCR2
+#define PWM_CCR2 2
+#endif
+
 void vcpwm_config_reset(uint8_t pwm_ch);
 
 void vcpwm_config_clock_division(uint8_t pwm_ch, uint8_t clk_div);
@@ -163,7 +175,6 @@ void vcpwm_config_clock_division(uint8_t pwm_ch, uint8_t clk_div);
 void vcpwm_config_mode(uint8_t pwm_ch, uint8_t mode);
 
 void vcpwm_config_clock_source(uint8_t pwm_ch, uint8_t clk_src);
-
 
 void vcpwm_config_enable_int(uint8_t pwm_ch);
 
@@ -173,94 +184,37 @@ int vcpwm_get_int_status(uint8_t pwm_ch);
 
 void vcpwm_clear_int_status(uint8_t pwm_ch);
 
-
-void vcpwm_config_ccr_period(uint8_t pwm_ch, uint8_t ccr_num, uint32_t period);
+void vcpwm_config_ccr_period(uint8_t pwm_ch, uint8_t ccr_num, uint16_t period);
 
 uint32_t vcpwm_get_ccr_val(uint8_t pwm_ch, uint8_t ccr_num);
 
+void vcpwm_config_cc_out_mode(uint8_t pwm_ch, uint8_t ccr_num, uint8_t out_mode);
 
-void vcpwm_config_cc_out0_mode(uint8_t pwm_ch, uint8_t out_mode);
+void vcpwm_config_out_level(uint8_t pwm_ch, uint8_t ccr_num, uint8_t level);
 
-void vcpwm_config_cc_out1_mode(uint8_t pwm_ch, uint8_t out_mode);
+void vcpwm_config_out_enable(uint8_t pwm_ch, uint8_t ccr_num, bool state);
 
-void vcpwm_config_cc_out2_mode(uint8_t pwm_ch, uint8_t out_mode);
+void vcpwm_config_out_compare_enable(uint8_t pwm_ch, uint8_t ccr_num);
 
+void vcpwm_config_input_capture_enable(uint8_t pwm_ch, uint8_t ccr_num);
 
-void vcpwm_config_out0_level(uint8_t pwm_ch, uint8_t level);
+void vcpwm_config_input_capture_mode(uint8_t pwm_ch, uint8_t ccr_num, uint8_t capture_mode);
 
-void vcpwm_config_out1_level(uint8_t pwm_ch, uint8_t level);
+void vcpwm_config_enable_cc_int(uint8_t pwm_ch, uint8_t ccr_num);
 
-void vcpwm_config_out2_level(uint8_t pwm_ch, uint8_t level);
+void vcpwm_config_disable_cc_int(uint8_t pwm_ch, uint8_t ccr_num);
 
+uint8_t vcpwm_get_cc_int_status(uint8_t pwm_ch, uint8_t ccr_num, uint8_t cc_int);
 
-void vcpwm_config_out0_enable(uint8_t pwm_ch, bool state);
-
-void vcpwm_config_out1_enable(uint8_t pwm_ch, bool state);
-
-void vcpwm_config_out2_enable(uint8_t pwm_ch, bool state);
-
-
-void vcpwm_config_out0_compare_enable(uint8_t pwm_ch);
-
-void vcpwm_config_out1_compare_enable(uint8_t pwm_ch);
-
-void vcpwm_config_out2_compare_enable(uint8_t pwm_ch);
-
-
-void vcpwm_config_input0_capture_enable(uint8_t pwm_ch);
-
-void vcpwm_config_input1_capture_enable(uint8_t pwm_ch);
-
-void vcpwm_config_input2_capture_enable(uint8_t pwm_ch);
-
-
-void vcpwm_config_input0_capture_mode(uint8_t pwm_ch, uint8_t capture_mode);
-
-void vcpwm_config_input1_capture_mode(uint8_t pwm_ch, uint8_t capture_mode);
-
-void vcpwm_config_input2_capture_mode(uint8_t pwm_ch, uint8_t capture_mode);
-
-
-void vcpwm_config_enable_cc0_int(uint8_t pwm_ch);
-
-void vcpwm_config_enable_cc1_int(uint8_t pwm_ch);
-
-void vcpwm_config_enable_cc2_int(uint8_t pwm_ch);
-
-
-void vcpwm_config_disable_cc0_int(uint8_t pwm_ch);
-
-void vcpwm_config_disable_cc1_int(uint8_t pwm_ch);
-
-void vcpwm_config_disable_cc2_int(uint8_t pwm_ch);
-
-
-uint8_t vcpwm_get_cc0_int_status(uint8_t pwm_ch, uint8_t cc_int);
-
-uint8_t vcpwm_get_cc1_int_status(uint8_t pwm_ch, uint8_t cc_int);
-
-uint8_t vcpwm_get_cc2_int_status(uint8_t pwm_ch, uint8_t cc_int);
-
-
-void vcpwm_clear_cc0_int_status(uint8_t pwm_ch, uint8_t cc_int);
-
-void vcpwm_clear_cc1_int_status(uint8_t pwm_ch, uint8_t cc_int);
-
-void vcpwm_clear_cc2_int_status(uint8_t pwm_ch, uint8_t cc_int);
-
+void vcpwm_clear_cc_int_status(uint8_t pwm_ch, uint8_t ccr_num, uint8_t cc_int);
 
 void vcpwm_clear_counter(uint8_t pwm_ch);
 
+uint16_t vcpwm_get_counter(uint8_t pwm_ch);
 
-uint8_t vcpwm_get_scci0(uint8_t pwm_ch);
-
-uint8_t vcpwm_get_scci1(uint8_t pwm_ch);
-
-uint8_t vcpwm_get_scci2(uint8_t pwm_ch);
-
+uint8_t vcpwm_get_scci(uint8_t pwm_ch, uint8_t ccr_num);
 
 void vcpwm_outline_select(uint8_t pwm_ch, uint8_t pwm_io, uint8_t out_sel);
-
 
 #ifdef __cplusplus
 }

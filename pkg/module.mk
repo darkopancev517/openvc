@@ -1,7 +1,7 @@
 ###################################################
 # PKG MODULES
 ###################################################
-export MODULE_PKG_CONTIKI_NG ?= 1
+export MODULE_PKG_CONTIKI_NG := 1
 
 ###################################################
 # PKG MODULES COMPILER FLAGS DEFINITION
