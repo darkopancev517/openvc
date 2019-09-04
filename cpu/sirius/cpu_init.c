@@ -32,7 +32,4 @@ void cpu_init(void)
 
     /* disable watchdog timer */
     vcwdt_disable();
-
-    /* initialize xtimer */
-    xtimer_init();
 }
