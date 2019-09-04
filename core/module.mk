@@ -2,7 +2,7 @@
 # CORE MODULES
 ###################################################
 export MODULE_CORE_MSG := 1
-export MODULE_SCHEDSTATISTICS := 0
+export MODULE_SCHEDSTATISTICS := 1
 
 ###################################################
 # SYSTEM MODULES COMPILER FLAGS DEFINITION

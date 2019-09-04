@@ -66,6 +66,18 @@ extern clist_node_t sched_runqueues[SCHED_PRIO_LEVELS];
 
 NORETURN void sched_task_exit(void);
 
+#ifdef MODULE_SCHEDSTATISTICS
+typedef struct {
+    uint32_t laststart;
+    unsigned int schedules;
+    uint64_t runtime_ticks;
+} schedstat_t;
+
+extern schedstat_t sched_pidlist[KERNEL_PID_LAST + 1];
+
+void sched_register_cb(void (*callback)(uint32_t, uint32_t));
+#endif /* MODULE_SCHEDSTATISTICS */
+
 #ifdef __cplusplus
 }
 #endif
