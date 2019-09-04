@@ -44,7 +44,7 @@ void centauri_rx(void);
 
 void centauri_idle(void);
 
-void centauri_tx(uint8_t *data, uint16_t length);
+int centauri_tx(uint8_t *data, uint16_t length);
 
 uint32_t centauri_get_freq(void);
 

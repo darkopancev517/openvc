@@ -165,7 +165,12 @@ static int radio_transmit(unsigned short len)
     radio_state = RADIO_STATE_TRANSMIT;
 
     /* transmit the packet */
-    centauri_tx(radio_txbuf, radio_txlen);
+    if (centauri_tx(radio_txbuf, radio_txlen) != 0) {
+        /* low level driver transmit failed */
+        LOG_WARN("transmit failed\n");
+        ret = RADIO_TX_ERR;
+        goto exit;
+    }
 
     /* check whether we need to wait for ack of not */
     if (!(radio_status & RADIO_TX_BROADCAST) && radio_txlen > CSMA_ACK_LEN) {
@@ -191,6 +196,9 @@ static int radio_transmit(unsigned short len)
     radio_on();
 
 exit:
+    if (ret == RADIO_TX_ERR) {
+        radio_on();
+    }
     return ret;
 }
 

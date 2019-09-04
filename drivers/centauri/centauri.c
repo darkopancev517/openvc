@@ -24,7 +24,7 @@
 
 #define CENT_MSG_EVENT_IRQ (0x10)
 
-#define CENTAURI_TX_TIMEOUT_VALUE (100000ul) /* 100 ms */
+#define CENTAURI_TX_TIMEOUT_VALUE (200000ul) /* 100 ms */
 
 static uint8_t cent_rxbuf[CENTAURI_BUFFER_SIZE];
 static cent_dataset_t cent_data;
@@ -143,9 +143,11 @@ void centauri_idle(void)
     cent_spi_release();
 }
 
-void centauri_tx(uint8_t *data, uint16_t length)
+int centauri_tx(uint8_t *data, uint16_t length)
 {
     assert(length <= CENTAURI_PAYLOAD_SIZE);
+
+    int ret = 0;
 
     cent_spi_acquire();
 
@@ -173,12 +175,12 @@ void centauri_tx(uint8_t *data, uint16_t length)
     while (!cent_data.phytxcmp && timeout > xtimer_now().ticks32);
 
     if (cent_data.phytxcmp != 1 && timeout < xtimer_now().ticks32) {
-        /* Note: for some reason the phytxcmp event is not generated but we
-         * must get mactxcmp event instead */
-        assert(cent_data.mactxcmp == 1);
+        ret = -1; /* tx failed */
     }
 
     BOARD_TXLED_OFF();
+
+    return ret;
 }
 
 uint32_t centauri_get_freq(void)
