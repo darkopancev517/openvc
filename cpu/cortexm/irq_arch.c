@@ -21,6 +21,11 @@ void irq_restore(unsigned int state)
     __set_PRIMASK(state);
 }
 
+unsigned irq_getstate(void)
+{
+    return __get_PRIMASK();
+}
+
 /**
  * See if the current context is inside an ISR
  */

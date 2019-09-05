@@ -13,6 +13,8 @@ unsigned irq_enable(void);
 
 void irq_restore(unsigned state);
 
+unsigned irq_getstate(void);
+
 int irq_is_in(void);
 
 int irq_is_enable(void);

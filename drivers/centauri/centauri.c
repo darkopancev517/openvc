@@ -15,12 +15,12 @@
 #include "TransceiverInit.h"
 #include "TransceiverCsr.h"
 
-#include "thread.h"
-#include "xtimer.h"
 #include "board.h"
+#include "nvsets.h"
+#include "xtimer.h"
+
 #include "periph/gpio.h"
 #include "periph/spi.h"
-#include "nvsets.h"
 
 #define CENT_MSG_EVENT_IRQ (0x10)
 
@@ -37,8 +37,6 @@ static void cent_spi_acquire(void);
 static void cent_spi_release(void);
 static uint32_t cent_tx_prefill(uint8_t *data, uint16_t length);
 static void cent_gpio_int_cb(void *arg);
-
-extern kernel_pid_t centauri_thread_pid;
 
 cent_dataset_t *centauri_init(void)
 {
@@ -75,6 +73,11 @@ cent_dataset_t *centauri_init(void)
     cent_spi_release();
 
     xtimer_usleep(2000); /* give some delay to receive centauri alive status */
+
+    uint32_t timeout = xtimer_now().ticks32 + 1000000; /* 1 second timeout */
+    while (cent_data.alivestatus == 0 && timeout > xtimer_now().ticks32) {}
+
+    assert(cent_data.alivestatus);
 
     /* stage 2 -------------------------------------------------------------- */
 
@@ -413,21 +416,25 @@ static void cent_handle_event_irq(void)
         }
     }
 
-    RF_CMD_T *event = (RF_CMD_T *)get_cent_event();
-    assert(event != NULL);
+    while (1) {
+        RF_CMD_T *event = (RF_CMD_T *)get_cent_event();
+        if (event == NULL) {
+            goto exit;
+        }
 
-    switch (event->cmd) {
-    case RF_EVENT_MAC_IRQn:
-        cent_handle_event_mac(event);
-        break;
-    case RF_EVENT_PHY_IRQn:
-        cent_handle_event_phy(event);
-        break;
-    case RF_EVENT_STATUS:
-        cent_handle_event_status(event);
-        break;
-    default:
-        break;
+        switch (event->cmd) {
+        case RF_EVENT_MAC_IRQn:
+            cent_handle_event_mac(event);
+            break;
+        case RF_EVENT_PHY_IRQn:
+            cent_handle_event_phy(event);
+            break;
+        case RF_EVENT_STATUS:
+            cent_handle_event_status(event);
+            break;
+        default:
+            break;
+        }
     }
 
 exit:
@@ -437,25 +444,6 @@ exit:
 static void cent_gpio_int_cb(void *arg)
 {
     if (cent_data.irqlisten) {
-        msg_t msg;
-        msg.type = CENT_MSG_EVENT_IRQ;
-        msg.content.ptr = NULL;
-        msg_try_send(&msg, centauri_thread_pid);
+        cent_handle_event_irq();
     }
-}
-
-void *centauri_thread(void *arg)
-{
-    (void) arg;
-
-    msg_t msg;
-    while (1) {
-        if (msg_receive(&msg)) {
-            if (msg.type == CENT_MSG_EVENT_IRQ) {
-                cent_handle_event_irq();
-            }
-        }
-    }
-
-    return NULL;
 }
