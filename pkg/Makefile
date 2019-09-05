@@ -1,4 +1,22 @@
-SRCS_PKG_CONTIKI_NG_CONTRIB += $(wildcard contiki-ng/contrib/*.c)
+SRCS_PKG_CONTIKI_NG_CONTRIB += $(addprefix contiki-ng/contrib/,\
+    clock.c \
+    int-master.c \
+    platform.c \
+    radio.c \
+    random.c \
+    rtimer-arch.c \
+    shell-arch.c \
+    slip-arch.c \
+    watchdog.c \
+    )
+
+ifeq ($(PKG_CONTIKI_NG_MAKE_SNIFFER),1)
+SRCS_PKG_CONTIKI_NG_CONTRIB += $(addprefix contiki-ng/contrib/sniffer/,\
+    sensniff-io.c \
+    sensniff-mac.c \
+    sensniff.c \
+    )
+endif
 
 SRCS_PKG_CONTIKI_NG_SYS += $(addprefix contiki-ng/repo/os/sys/,\
     autostart.c \
@@ -41,6 +59,12 @@ SRCS_PKG_CONTIKI_NG_DEV += $(addprefix contiki-ng/repo/os/dev/,\
 SRCS_PKG_CONTIKI_NG_ANTELOPE += $(wildcard contiki-ng/repo/os/storage/antelope/,*.c)
 SRCS_PKG_CONTIKI_NG_CFS += $(wildcard contiki-ng/repo/os/storage/cfs/,*.c)
 
+ifeq ($(PKG_CONTIKI_NG_MAKE_SNIFFER),1)
+SRCS_PKG_CONTIKI_NG_NET += $(addprefix contiki-ng/repo/os/net/,\
+    linkaddr.c \
+    packetbuf.c \
+    )
+else
 SRCS_PKG_CONTIKI_NG_NET += $(addprefix contiki-ng/repo/os/net/,\
     link-stats.c \
     linkaddr.c \
@@ -50,6 +74,7 @@ SRCS_PKG_CONTIKI_NG_NET += $(addprefix contiki-ng/repo/os/net/,\
     packetbuf.c \
     queuebuf.c \
     )
+endif
 
 SRCS_PKG_CONTIKI_NG_NET_MAC += $(addprefix contiki-ng/repo/os/net/mac/,\
     mac-sequence.c \
@@ -228,6 +253,11 @@ OBJS_PKG_CONTIKI_NG += $(addprefix $(BUILD)/,$(SRCS_PKG_CONTIKI_NG_SYS:.c=.o))
 OBJS_PKG_CONTIKI_NG += $(addprefix $(BUILD)/,$(SRCS_PKG_CONTIKI_NG_DEV:.c=.o))
 OBJS_PKG_CONTIKI_NG += $(addprefix $(BUILD)/,$(SRCS_PKG_CONTIKI_NG_LIB:.c=.o))
 OBJS_PKG_CONTIKI_NG += $(addprefix $(BUILD)/,$(SRCS_PKG_CONTIKI_NG_NET:.c=.o))
+
+# ==============================================================================
+
+ifneq ($(PKG_CONTIKI_NG_MAKE_SNIFFER),1)
+
 OBJS_PKG_CONTIKI_NG += $(addprefix $(BUILD)/,$(SRCS_PKG_CONTIKI_NG_NET_MAC:.c=.o))
 OBJS_PKG_CONTIKI_NG += $(addprefix $(BUILD)/,$(SRCS_PKG_CONTIKI_NG_NET_MAC_FRAMER:.c=.o))
 OBJS_PKG_CONTIKI_NG += $(addprefix $(BUILD)/,$(SRCS_PKG_CONTIKI_NG_SERVICES_SHELL:.c=.o))
@@ -285,6 +315,9 @@ OBJS_PKG_CONTIKI_NG += $(addprefix $(BUILD)/,$(SRCS_PKG_CONTIKI_NG_NET_ROUTING_R
 endif
 
 # ------------------------------------------------------------------------------
+
+endif
+# ==============================================================================
 
 OBJS_DIR += $(sort $(dir $(OBJS_PKG_CONTIKI_NG)))
 

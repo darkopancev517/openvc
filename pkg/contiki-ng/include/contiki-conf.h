@@ -30,8 +30,16 @@ extern "C" {
 #define TSCH_CONF_HW_FRAME_FILTERING  (0)
 /* -------------------------------------------------------------------------- */
 
+#ifdef CONTIKI_NG_SNIFFER
+#define NETSTACK_CONF_WITH_NULLNET 1
+#define ROUTING_CONF_NULLROUTING 1
+#define NETSTACK_CONF_MAC sensniff_mac_driver
 #define NETSTACK_CONF_RADIO centauri_driver
 #define centauri_driver_max_payload_len CENTAURI_PAYLOAD_SIZE
+#else
+#define NETSTACK_CONF_RADIO centauri_driver
+#define centauri_driver_max_payload_len CENTAURI_PAYLOAD_SIZE
+#endif
 
 typedef unsigned long clock_time_t;
 typedef unsigned int uip_stats_t;

@@ -2,8 +2,10 @@
 #include <assert.h>
 
 #include "contiki.h"
-#include "contiki-net.h"
 #include "sys/platform.h"
+
+#ifndef CONTIKI_NG_SNIFFER
+#include "contiki-net.h"
 #include "dev/serial-line.h"
 #include "services/shell/shell.h"
 #include "services/shell/serial-shell.h"
@@ -14,7 +16,12 @@
 #include "net/mac/csma/csma.h"
 #endif
 #include "sys/node-id.h"
+#else
+#include "net/netstack.h"
+#include "sensniff-io.h"
+#endif
 
+#ifndef CONTIKI_NG_SNIFFER
 #if NETSTACK_CONF_WITH_IPV6
 static uip_ds6_addr_t *lladdr;
 #endif
@@ -26,6 +33,7 @@ static void print_prefix_6addr(const uip_ipaddr_t *ipaddr)
   uiplib_ipaddr_snprint(buf, sizeof(buf), ipaddr);
   printf("%s", buf);
 }
+#endif
 #endif
 
 int main(void)
@@ -42,6 +50,7 @@ int main(void)
 
     platform_init_stage_three();
 
+#ifndef CONTIKI_NG_SNIFFER
     serial_line_init();
     serial_shell_init();
     shell_init();
@@ -109,6 +118,10 @@ int main(void)
         NETSTACK_ROUTING.root_set_prefix(&prefix, NULL);
         NETSTACK_ROUTING.root_start();
     }
+#endif
+#else
+    sensniff_io_init();
+    NETSTACK_RADIO.init();
 #endif
 
     autostart_start(autostart_processes);

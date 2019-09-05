@@ -1,4 +1,5 @@
 /* Note: contiki application example */
+#ifndef CONTIKI_NG_SNIFFER
 
 #include "contiki.h"
 
@@ -25,3 +26,5 @@ PROCESS_THREAD(app_process, ev, data)
 
     PROCESS_END();
 }
+
+#endif /* #ifndef CONTIKI_NG_SNIFFER */

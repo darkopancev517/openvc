@@ -9,9 +9,11 @@ endif
 
 DEVELHELP ?= 0
 
+SNIFFER ?= 0
 NODE ?= 0
 ROOT ?= 0
 
+ifeq ($(SNIFFER),0)
 ifneq ($(NODE),0)
 DEVICE_ID = $(NODE)
 DEVICE_ROLE = node
@@ -24,6 +26,9 @@ endif
 
 DEVICE_ID ?= 0
 DEVICE_ROLE ?= node
+else
+DEVICE_ROLE = sniffer
+endif
 
 ###################################################
 # Commands
@@ -63,7 +68,11 @@ export CORTEXM = m3
 export ARCH = armv7-m
 endif
 
+ifeq ($(SNIFFER),0)
 BUILD = $(TOP)/build/$(CPU)_$(DEVICE_ROLE)_$(DEVICE_ID)
+else
+BUILD = $(TOP)/build/$(CPU)_$(DEVICE_ROLE)
+endif
 
 ###################################################
 # Images
@@ -80,6 +89,14 @@ PKG_CONTIKI_NG_INC += -I$(TOP)/pkg/contiki-ng/repo/os/net/ipv6
 PKG_CONTIKI_NG_INC += -I$(TOP)/pkg/contiki-ng/repo/os/services
 PKG_CONTIKI_NG_INC += -I$(TOP)/pkg/contiki-ng/repo/os/lib
 
+# SNIFFER make ----------------------------------------------------------------
+export PKG_CONTIKI_NG_MAKE_SNIFFER ?= $(SNIFFER)
+
+ifeq ($(PKG_CONTIKI_NG_MAKE_SNIFFER),1)
+PKG_CONTIKI_NG_CFLAGS += -DCONTIKI_NG_SNIFFER
+endif
+
+ifneq ($(PKG_CONTIKI_NG_MAKE_SNIFFER),1)
 # APP make ---------------------------------------------------------------------
 
 export MAKE_APP_COAP := 0
@@ -174,6 +191,9 @@ PKG_CONTIKI_NG_CFLAGS += -DDEVICE_ROLE_NODE
 endif
 
 PKG_CONTIKI_NG_CFLAGS += -DDEVICE_ID=$(DEVICE_ID)
+
+endif
+# ------------------------------------------------------------------------------
 
 ###################################################
 # Pkg build
@@ -314,8 +334,13 @@ $(FIRMWARE_IMAGE).lst: $(FIRMWARE_IMAGE).elf
 $(FIRMWARE): FIRMWARE_OBJS $(FIRMWARE_IMAGE).bin $(FIRMWARE_IMAGE).lst
 	$(SIZE) --format=berkeley $(FIRMWARE_IMAGE).elf
 	@mv $(FIRMWARE_IMAGE).elf $(FIRMWARE_IMAGE).bin $(BUILD)
+ifeq ($(SNIFFER),0)
 	@mv $(BUILD)/$(FIRMWARE).bin $(BUILD)/$(CPU)_$(DEVICE_ROLE)_$(DEVICE_ID).bin
 	@mv $(BUILD)/$(FIRMWARE).elf $(BUILD)/$(CPU)_$(DEVICE_ROLE)_$(DEVICE_ID).elf
+else
+	@mv $(BUILD)/$(FIRMWARE).bin $(BUILD)/$(CPU)_$(DEVICE_ROLE).bin
+	@mv $(BUILD)/$(FIRMWARE).elf $(BUILD)/$(CPU)_$(DEVICE_ROLE).elf
+endif
 
 $(OPENVC): $(FIRMWARE) | $(BUILD)
 
