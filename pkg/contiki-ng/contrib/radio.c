@@ -17,11 +17,12 @@
 #define LOG_LEVEL LOG_LEVEL_RADIO
 
 #define RADIO_ACK_TIMEOUT_VALUE (1 * CLOCK_SECOND)
-
-enum {
-    RADIO_BUFFER_SIZE = CENTAURI_PAYLOAD_SIZE,
-    RADIO_PKT_MAX = 4,
-};
+#define RADIO_BUFFER_SIZE       CENTAURI_PAYLOAD_SIZE
+#define RADIO_PKT_MAX           (4)
+#define RADIO_FREQ_MAX          (928000000)
+#define RADIO_FREQ_MIN          (868000000)
+#define RADIO_FREQ_SPACING      (200)
+#define RADIO_CHAN_MAX          (((RADIO_FREQ_MAX - RADIO_FREQ_MIN) / RADIO_FREQ_SPACING) - 1)
 
 enum {
     RADIO_TX_BROADCAST = 0x1,
@@ -110,6 +111,14 @@ PROCESS_THREAD(centauri_process, ev, data)
     PROCESS_END();
 }
 
+static void radio_set_channel(uint8_t channel)
+{
+    assert(channel <= RADIO_CHAN_MAX);
+    uint32_t freq = (channel * RADIO_FREQ_SPACING) + RADIO_FREQ_MIN;
+    radio_channel = channel;
+    centauri_set_freq(freq);
+}
+
 static int radio_init(void)
 {
     cent_dataset_t *cent = centauri_init();
@@ -120,7 +129,7 @@ static int radio_init(void)
     }
     memset(radio_txbuf, 0, sizeof(radio_txbuf));
 
-    radio_channel = IEEE802154_DEFAULT_CHANNEL;
+    radio_channel = 0;
     radio_txmode |= RADIO_TX_MODE_SEND_ON_CCA;
     radio_rxmode = 0;
     radio_txpower = cent->txpwr;
@@ -135,6 +144,8 @@ static int radio_init(void)
     process_start(&centauri_process, NULL);
 
     cent->rxcmp.app = centauri_rxcmp_cb;
+
+    radio_set_channel(radio_channel);
 
     return 1;
 }
@@ -273,16 +284,97 @@ static int radio_off(void)
 
 static radio_result_t radio_get_value(radio_param_t param, radio_value_t *value)
 {
-    (void)param;
-    (void)value;
-    return RADIO_RESULT_NOT_SUPPORTED;
+    if (!value) return RADIO_RESULT_INVALID_VALUE;
+
+    switch (param) {
+    case RADIO_PARAM_POWER_MODE:
+        if (radio_state == RADIO_STATE_RECEIVE) {
+            *value = (radio_value_t)RADIO_POWER_MODE_ON;
+        } else {
+            *value = (radio_value_t)RADIO_POWER_MODE_OFF;
+        }
+        return RADIO_RESULT_OK;
+
+    case RADIO_PARAM_CHANNEL:
+        *value = (radio_value_t)radio_channel;
+        return RADIO_RESULT_OK;
+
+    case RADIO_PARAM_PAN_ID:
+    case RADIO_PARAM_16BIT_ADDR:
+        return RADIO_RESULT_NOT_SUPPORTED;
+
+    case RADIO_PARAM_RX_MODE:
+        *value = (radio_value_t)radio_rxmode;
+        return RADIO_RESULT_OK;
+
+    case RADIO_PARAM_TX_MODE:
+        *value = (radio_value_t)radio_txmode;
+        return RADIO_RESULT_OK;
+
+    case RADIO_PARAM_TXPOWER:
+        *value = (radio_value_t)radio_txpower;
+        return RADIO_RESULT_OK;
+
+    case RADIO_CONST_CHANNEL_MIN:
+        *value = 0;
+        return RADIO_RESULT_OK;
+
+    case RADIO_CONST_CHANNEL_MAX:
+        *value = (radio_value_t)RADIO_CHAN_MAX;
+        return RADIO_RESULT_OK;
+
+    case RADIO_CONST_TXPOWER_MIN:
+        *value = 0;
+        return RADIO_RESULT_OK;
+
+    case RADIO_CONST_TXPOWER_MAX:
+        *value = 20;
+        return RADIO_RESULT_OK;
+
+    default:
+        return RADIO_RESULT_NOT_SUPPORTED;
+    }
 }
 
 static radio_result_t radio_set_value(radio_param_t param, radio_value_t value)
 {
-    (void)param;
-    (void)value;
-    return RADIO_RESULT_NOT_SUPPORTED;
+    switch (param) {
+    case RADIO_PARAM_POWER_MODE:
+        if (value == RADIO_POWER_MODE_ON || value == RADIO_POWER_MODE_OFF) {
+            value == RADIO_POWER_MODE_ON ? radio_on() : radio_off();
+        } else {
+            return RADIO_RESULT_NOT_SUPPORTED;
+        }
+        return RADIO_RESULT_OK;
+
+    case RADIO_PARAM_CHANNEL:
+        if (value < RADIO_CHAN_MAX) {
+            radio_set_channel(value);
+        } else {
+            return RADIO_RESULT_NOT_SUPPORTED;
+        }
+        return RADIO_RESULT_OK;
+
+    case RADIO_PARAM_PAN_ID:
+    case RADIO_PARAM_16BIT_ADDR:
+        return RADIO_RESULT_NOT_SUPPORTED;
+
+    case RADIO_PARAM_RX_MODE:
+        radio_rxmode = value;
+        return RADIO_RESULT_OK;
+
+    case RADIO_PARAM_TX_MODE:
+        radio_txmode = value;
+        return RADIO_RESULT_OK;
+
+    case RADIO_PARAM_TXPOWER:
+        centauri_set_txpwr(value);
+        radio_txpower = ((cent_dataset_t *)centauri_get_data())->txpwr;
+        return RADIO_RESULT_OK;
+
+    default:
+        return RADIO_RESULT_NOT_SUPPORTED;
+    }
 }
 
 static radio_result_t radio_get_object(radio_param_t param, void *dest, size_t size)

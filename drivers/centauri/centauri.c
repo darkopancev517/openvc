@@ -227,6 +227,15 @@ cent_dataset_t *centauri_get_data(void)
     return (cent_dataset_t *)&cent_data;
 }
 
+void centauri_set_txpwr(uint8_t txpwr)
+{
+    cent_spi_acquire();
+    if (txpwr > 20) txpwr = 20;
+    cent_data.txpwr = nvsets.cent.tx_power = txpwr;
+    cent_cmd_txpwr(txpwr);
+    cent_spi_release();
+}
+
 void centauri_reg_ww(uint32_t addr, uint32_t word)
 {
     cent_spi_acquire();

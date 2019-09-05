@@ -56,6 +56,8 @@ int centauri_is_receiving(void);
 
 cent_dataset_t *centauri_get_data(void);
 
+void centauri_set_txpwr(uint8_t txpwr);
+
 #ifdef __cplusplus
 }
 #endif
