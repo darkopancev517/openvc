@@ -3,9 +3,6 @@
 
 #include <stdio.h>
 
-#include "sched.h"
-#include "thread.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif

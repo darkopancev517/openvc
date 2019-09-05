@@ -38,7 +38,7 @@ OPENVC = openvc
 ###################################################
 # Targets
 ###################################################
-export APPS ?= shell
+export APPS ?= test
 export BOARD ?= vc7300mtr
 
 ifeq ($(BOARD),$(filter $(BOARD),vc7300mtr))
@@ -160,7 +160,6 @@ PKG_CFLAGS += $(PKG_CONTIKI_NG_CFLAGS)
 # BUILD variables
 ###################################################
 # include modules
-include core/module.mk
 include drivers/module.mk
 include sys/module.mk
 include pkg/module.mk
@@ -236,45 +235,11 @@ export LIB_APPS = libapps.a
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/core/$(LIB_CORE)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/cpu/$(LIB_CPU)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/board/$(LIB_BOARD)
-ifeq ($(MODULE_DRIVERS_NVSETS),1)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD)/drivers/$(LIB_DRIVERS_NVSETS)
-endif
-ifeq ($(MODULE_DRIVERS_CENTAURI),1)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD)/drivers/$(LIB_DRIVERS_CENTAURI)
-endif
-ifeq ($(MODULE_STDIO_UART),1)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_STDIO_UART)
-endif
 ifeq ($(MODULE_SYSCALLS),1)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_SYSCALLS)
 endif
-ifeq ($(MODULE_TSRB),1)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_TSRB)
-endif
-ifeq ($(MODULE_XTIMER),1)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_XTIMER)
-endif
-ifeq ($(MODULE_DIV),1)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_DIV)
-endif
-ifeq ($(MODULE_TIMEX),1)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_TIMEX)
-endif
-ifeq ($(MODULE_ISRPIPE),1)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_ISRPIPE)
-endif
-ifeq ($(MODULE_SHELL),1)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_SHELL)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_SHELL_COMMANDS)
-endif
-ifeq ($(MODULE_PS),1)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_PS)
-endif
-ifeq ($(MODULE_AUTO_INIT),1)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_AUTO_INIT)
-endif
-ifeq ($(MODULE_PKG_CONTIKI_NG),1)
-FIRMWARE_LIBS += $(FIRMWARE_BUILD)/pkg/$(LIB_PKG_CONTIKI_NG)
+ifeq ($(MODULE_STDIO_UART),1)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_STDIO_UART)
 endif
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/apps/$(LIB_APPS)
 
@@ -296,9 +261,7 @@ FIRMWARE_OBJS:
 	$(MAKE) -C core BUILD="$(FIRMWARE_BUILD)/core" CFLAGS="$(CFLAGS) -MD -MP"
 	$(MAKE) -C cpu BUILD="$(FIRMWARE_BUILD)/cpu" CFLAGS="$(CFLAGS) -MD -MP"
 	$(MAKE) -C boards BUILD="$(FIRMWARE_BUILD)/board" CFLAGS="$(CFLAGS) -MD -MP"
-	$(MAKE) -C drivers BUILD="$(FIRMWARE_BUILD)/drivers" CFLAGS="$(CFLAGS) -MD -MP"
 	$(MAKE) -C sys BUILD="$(FIRMWARE_BUILD)/sys" CFLAGS="$(CFLAGS) -MD -MP"
-	$(MAKE) -C pkg BUILD="$(FIRMWARE_BUILD)/pkg" CFLAGS="$(CFLAGS) -MD -MP"
 	$(MAKE) -C apps BUILD="$(FIRMWARE_BUILD)/apps"  CFLAGS="$(CFLAGS) -MD -MP"
 
 $(FIRMWARE_IMAGE).elf: $(FIRMWARE_LIBS)

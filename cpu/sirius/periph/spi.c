@@ -3,7 +3,7 @@
 
 #include "cpu.h"
 #include "vcsoc.h"
-#include "mutex.h"
+#include "irq.h"
 
 #include "periph/spi.h"
 
@@ -16,7 +16,8 @@ typedef struct spi_config {
     spi_cs_t cs;
     spi_mode_t mode;
     spi_clk_t clk;
-    mutex_t mutex;
+    uint8_t spi_lock;
+    unsigned irqstate;
 } spi_config_t;
 
 static uint8_t spi_apbperiph[SPI_NUMOF] = {
@@ -26,9 +27,9 @@ static uint8_t spi_apbperiph[SPI_NUMOF] = {
 };
 
 static spi_config_t spi_config[SPI_NUMOF] = {
-    { SPI_CS_UNDEF, SPI_MODE_0, SPI_CLK_5MHZ, MUTEX_INIT },
-    { SPI_CS_UNDEF, SPI_MODE_0, SPI_CLK_5MHZ, MUTEX_INIT },
-    { SPI_CS_UNDEF, SPI_MODE_0, SPI_CLK_5MHZ, MUTEX_INIT }
+    { SPI_CS_UNDEF, SPI_MODE_0, SPI_CLK_5MHZ, 0, 0 },
+    { SPI_CS_UNDEF, SPI_MODE_0, SPI_CLK_5MHZ, 0, 0 },
+    { SPI_CS_UNDEF, SPI_MODE_0, SPI_CLK_5MHZ, 0, 0 }
 };
 
 static uint8_t spi_dma_reqsrc_rx[SPI_NUMOF] = {
@@ -87,9 +88,6 @@ static void _spi_config_clk(spi_t bus, spi_clk_t clk)
 void spi_init(spi_t bus)
 {
     assert(bus < SPI_NUMOF && bus > 0);
-
-    /* initialize device lock */
-    mutex_init(&spi_config[bus].mutex);
 
     /* reset spi configuration */
     vcspi_config_reset(bus);
@@ -180,7 +178,8 @@ int spi_acquire(spi_t bus, spi_cs_t cs, spi_mode_t mode, spi_clk_t clk)
     }
 
     /* take spi lock */
-    mutex_lock(&spi_config[bus].mutex);
+    spi_config[bus].spi_lock = 1;
+    spi_config[bus].irqstate = irq_disable();
 
     if (spi_config[bus].mode != mode) {
         _spi_config_mode(bus, mode);
@@ -196,9 +195,11 @@ int spi_acquire(spi_t bus, spi_cs_t cs, spi_mode_t mode, spi_clk_t clk)
 void spi_release(spi_t bus)
 {
     assert(bus < SPI_NUMOF && bus > 0);
+    assert(spi_config[bus].spi_lock);
 
     /* give spi lock */
-    mutex_unlock(&spi_config[bus].mutex);
+    spi_config[bus].spi_lock = 0;
+    irq_restore(spi_config[bus].irqstate);
 }
 
 static void _transfer_dma(spi_t bus, const void *out, void *in, size_t len)
@@ -230,7 +231,7 @@ void spi_transfer_bytes(spi_t bus, spi_cs_t cs, bool cont, const void *out, void
 
     /* Note: make sure at least one input or one output buffer is given and
      * mutex has been locked or spi bus is acquired */
-    assert((out || in) && (mutex_trylock(&spi_config[bus].mutex) == 0));
+    assert((out || in) && (spi_config[bus].spi_lock == 1));
 
     /* active the given chip-select line if cs is defined */
     if (cs != SPI_CS_UNDEF) {

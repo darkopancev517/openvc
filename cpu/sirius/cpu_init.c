@@ -1,6 +1,5 @@
 #include "cpu.h"
 #include "vcsoc.h"
-#include "xtimer.h"
 
 void cpu_init(void)
 {

@@ -158,9 +158,9 @@ static void irq_uart_handler(uart_t uart)
 {
     if (vcuart_get_int_status(uart, UARTINT_RX)) {
         vcuart_clear_int_status(uart, UARTINT_RX);
-        isr_uart_ctx[uart].rx_cb(isr_uart_ctx[uart].arg, vcuart_recv_byte(uart));
-        /* check if context switch was requested */
-        cortexm_isr_end();
+        if (isr_uart_ctx[uart].rx_cb != NULL) {
+            isr_uart_ctx[uart].rx_cb(isr_uart_ctx[uart].arg, vcuart_recv_byte(uart));
+        }
     }
 }
 

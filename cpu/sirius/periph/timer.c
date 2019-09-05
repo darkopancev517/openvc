@@ -89,8 +89,6 @@ static void irq_timer_handler(tim_t dev)
             NVIC_DisableIRQ(timer_irqn[dev]);
             if (isr_timer_ctx[dev].cb != NULL && vcpwm_get_ccr_val(dev, ch) != 0) {
                 isr_timer_ctx[dev].cb(isr_timer_ctx[dev].arg, ch);
-                /* check if context switch was requested */
-                cortexm_isr_end();
                 break;
             }
         }

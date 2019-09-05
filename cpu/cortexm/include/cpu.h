@@ -4,8 +4,6 @@
 #include <stdio.h>
 
 #include "irq.h"
-#include "sched.h"
-#include "thread.h"
 #include "cpu_conf.h"
 
 #ifdef __cplusplus
@@ -52,16 +50,6 @@ static inline void cortexm_sleep(int deep)
     __DSB();
     __WFI();
     irq_restore(state);
-}
-
-/**
- * Trigger a conditional context scheduler run / context switch
- */
-static inline void cortexm_isr_end(void)
-{
-    if (sched_context_switch_request) {
-        thread_yield_higher();
-    }
 }
 
 static inline void cpu_jump_to_image(uint32_t image_address)

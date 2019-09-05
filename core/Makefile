@@ -1,15 +1,8 @@
 SRCS_CORE += assert.c
 SRCS_CORE += bitarithm.c
 SRCS_CORE += clist.c
-SRCS_CORE += kernel_init.c
-SRCS_CORE += mutex.c
 SRCS_CORE += panic.c
 SRCS_CORE += ringbuffer.c
-SRCS_CORE += sched.c
-SRCS_CORE += thread.c
-ifeq ($(MODULE_CORE_MSG),1)
-SRCS_CORE += msg.c
-endif
 
 OBJS_CORE += $(addprefix $(BUILD)/,$(SRCS_CORE:.c=.o))
 

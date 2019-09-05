@@ -5,14 +5,7 @@
 extern "C" {
 #endif
 
-/**
- * Default stack size configurations
- */
-#define THREAD_EXTRA_STACKSIZE_PRINTF (512)
-#define THREAD_STACKSIZE_DEFAULT (1024)
-#define THREAD_STACKSIZE_IDLE (256)
-#define THREAD_STACKSIZE_MAIN (THREAD_STACKSIZE_DEFAULT + THREAD_EXTRA_STACKSIZE_PRINTF)
-#define ISR_STACKSIZE (1024)
+#define ISR_STACKSIZE (1024UL)
 
 /* ARM Cortex-M specific CPU configuration */
 #define CPU_DEFAULT_IRQ_PRIO (63U)

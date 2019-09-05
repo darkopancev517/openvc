@@ -156,8 +156,6 @@ static void irq_gpio_handler(gpio_t pin)
     uint8_t index = (8 * _port(pin) + _pin(pin));
     if (isr_gpio_ctx[index].cb != NULL) {
         isr_gpio_ctx[index].cb(isr_gpio_ctx[index].arg);
-        /* check if context switch was requested */
-        cortexm_isr_end();
     }
 }
 

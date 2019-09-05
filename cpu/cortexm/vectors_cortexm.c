@@ -3,7 +3,6 @@
 #include <inttypes.h>
 
 #include "cpu.h"
-#include "kernel_init.h"
 #include "board.h"
 #include "panic.h"
 #include "vectors_cortexm.h"
@@ -76,8 +75,9 @@ void reset_handler_default(void)
     extern void __libc_init_array(void);
     __libc_init_array();
 
-    /* startup the kernel */
-    kernel_init();
+    /* call main function */
+    extern int main(void);
+    main();
 }
 
 void nmi_default(void)
