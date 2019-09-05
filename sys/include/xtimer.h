@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 #include "timex.h"
-#include "msg.h"
-#include "mutex.h"
 
 #include "board.h"
 
@@ -59,25 +57,11 @@ static inline void xtimer_tsleep64(xtimer_ticks64_t ticks);
 
 static inline void xtimer_spin(xtimer_ticks32_t ticks);
 
-static inline void xtimer_periodic_wakeup(xtimer_ticks32_t *last_wakeup, uint32_t period);
-
-static inline void xtimer_set_msg(xtimer_t *timer, uint32_t offset, msg_t *msg, kernel_pid_t target_pid);
-
-static inline void xtimer_set_msg64(xtimer_t *timer, uint64_t offset, msg_t *msg, kernel_pid_t target_pid);
-
-static inline void xtimer_set_wakeup(xtimer_t *timer, uint32_t offset, kernel_pid_t pid);
-
-static inline void xtimer_set_wakeup64(xtimer_t *timer, uint64_t offset, kernel_pid_t pid);
-
 static inline void xtimer_set(xtimer_t *timer, uint32_t offset);
 
 static inline void xtimer_set64(xtimer_t *timer, uint64_t offset_us);
 
 void xtimer_remove(xtimer_t *timer);
-
-static inline int xtimer_msg_receive_timeout(msg_t *msg, uint32_t timeout);
-
-static inline int xtimer_msg_receive_timeout64(msg_t *msg, uint64_t timeout);
 
 static inline xtimer_ticks32_t xtimer_ticks_from_usec(uint32_t usec);
 
@@ -100,10 +84,6 @@ static inline xtimer_ticks32_t xtimer_diff32_64(xtimer_ticks64_t a, xtimer_ticks
 static inline bool xtimer_less(xtimer_ticks32_t a, xtimer_ticks32_t b);
 
 static inline bool xtimer_less64(xtimer_ticks64_t a, xtimer_ticks64_t b);
-
-int xtimer_mutex_lock_timeout(mutex_t *mutex, uint64_t us);
-
-void xtimer_set_timeout_flag(xtimer_t *t, uint32_t timeout);
 
 /**
  * xtimer backoff value

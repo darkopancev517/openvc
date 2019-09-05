@@ -319,8 +319,7 @@ static inline xtimer_t *_compare(xtimer_t *a, xtimer_t *b)
 {
     if (a && b) {
         return ((a->target <= b->target) ? a : b);
-    }
-    else {
+    } else {
         return (a ? a : b);
     }
 }
