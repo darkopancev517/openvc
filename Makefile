@@ -38,7 +38,7 @@ OPENVC = openvc
 ###################################################
 # Targets
 ###################################################
-export APPS ?= test
+export APPS ?= contiki-ng
 export BOARD ?= vc7300mtr
 
 ifeq ($(BOARD),$(filter $(BOARD),vc7300mtr))
@@ -247,6 +247,9 @@ endif
 ifeq ($(MODULE_XTIMER),1)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_XTIMER)
 endif
+ifeq ($(MODULE_PKG_CONTIKI_NG),1)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/pkg/$(LIB_PKG_CONTIKI_NG)
+endif
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/apps/$(LIB_APPS)
 
 ###################################################
@@ -269,6 +272,7 @@ FIRMWARE_OBJS:
 	$(MAKE) -C boards BUILD="$(FIRMWARE_BUILD)/board" CFLAGS="$(CFLAGS) -MD -MP"
 	$(MAKE) -C drivers BUILD="$(FIRMWARE_BUILD)/drivers" CFLAGS="$(CFLAGS) -MD -MP"
 	$(MAKE) -C sys BUILD="$(FIRMWARE_BUILD)/sys" CFLAGS="$(CFLAGS) -MD -MP"
+	$(MAKE) -C pkg BUILD="$(FIRMWARE_BUILD)/pkg" CFLAGS="$(CFLAGS) -MD -MP"
 	$(MAKE) -C apps BUILD="$(FIRMWARE_BUILD)/apps"  CFLAGS="$(CFLAGS) -MD -MP"
 
 $(FIRMWARE_IMAGE).elf: $(FIRMWARE_LIBS)

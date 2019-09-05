@@ -14,6 +14,5 @@ static void print_ipsr(void)
 void panic_arch(void)
 {
     print_ipsr();
-    /* The bkpt instruction will signal to the debugger to break here. */
-    __asm__("bkpt #0");
+    while (1) {}
 }

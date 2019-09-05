@@ -88,7 +88,7 @@ SECTIONS
         KEEP (*(.puf))
         . = ALIGN(8);
         _sstack = .;
-        KEEP (*(.isr_stack))
+        KEEP (*(.main_stack))
         . = ALIGN(8);
         _estack = .;
     } > ram

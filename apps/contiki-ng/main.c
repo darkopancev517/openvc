@@ -1,18 +1,15 @@
 #include <stdio.h>
 #include <assert.h>
 
-#ifdef MODULE_PKG_CONTIKI_NG
 #include "contiki.h"
 #include "contiki-net.h"
 #include "sys/platform.h"
 #include "dev/serial-line.h"
 #include "services/shell/shell.h"
 #include "services/shell/serial-shell.h"
-#endif
 
 int main(void)
 {
-#ifdef MODULE_PKG_CONTIKI_NG
     platform_init_stage_one();
 
     clock_init();
@@ -30,10 +27,10 @@ int main(void)
     shell_init();
 
     autostart_start(autostart_processes);
-#endif
+
+    printf("contiki-ng process started\n");
 
     while (1) {
-#ifdef MODULE_PKG_CONTIKI_NG
         uint8_t p = 0;
         do {
             p = process_run();
@@ -41,7 +38,6 @@ int main(void)
                 etimer_request_poll();
             }
         } while (p > 0);
-#endif
     }
 
     /* should not reach here */

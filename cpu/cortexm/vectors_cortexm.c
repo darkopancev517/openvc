@@ -23,9 +23,9 @@ extern uint8_t _sram;
 extern uint8_t _eram;
 
 /**
- * Allocation of the interrupt stack
+ * Allocation of the main stack
  */
-__attribute__((used,section(".isr_stack"))) uint8_t isr_stack[ISR_STACKSIZE];
+__attribute__((used,section(".main_stack"))) uint8_t main_stack[MAIN_STACKSIZE];
 
 /**
  * Pre-start routine for CPU-specific settings

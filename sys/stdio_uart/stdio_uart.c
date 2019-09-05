@@ -1,9 +1,20 @@
 #include "stdio_uart.h"
 #include "periph/uart.h"
 
+#ifdef MODULE_PKG_CONTIKI_NG
+#include "dev/serial-line.h"
+#endif
+
+void stdio_uart_rx_cb(void *arg, uint8_t data)
+{
+#ifdef MODULE_PKG_CONTIKI_NG
+    serial_line_input_byte((unsigned char)data);
+#endif
+}
+
 void stdio_init(void)
 {
-    uart_init(STDIO_UART_DEV, STDIO_UART_BAUDRATE, NULL, NULL);
+    uart_init(STDIO_UART_DEV, STDIO_UART_BAUDRATE, stdio_uart_rx_cb, NULL);
 }
 
 ssize_t stdio_read(void *buffer, size_t count)

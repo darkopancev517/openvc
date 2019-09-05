@@ -1,5 +1,5 @@
-#include <string.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "dev/serial-line.h"
 #include "lib/ringbuf.h"
@@ -21,10 +21,61 @@
 
 static struct ringbuf rxbuf;
 static uint8_t rxbuf_data[BUFSIZE];
+static volatile int overflow = 0;
+
+process_event_t serial_line_event_message;
 
 PROCESS(serial_line_process, "Serial driver");
 
-process_event_t serial_line_event_message;
+static void print_prompt(void)
+{
+    putchar('>');
+    putchar(' ');
+    fflush(stdout);
+}
+
+static void new_line(void)
+{
+    putchar('\r');
+    putchar('\n');
+}
+
+static void white_tape_char(void)
+{
+    putchar('\b');
+    putchar(' ');
+    putchar('\b');
+}
+
+int serial_line_input_byte(unsigned char c)
+{
+    if (c == '\n' || c == '\r') {
+        if (!overflow) {
+            ringbuf_put(&rxbuf, END);
+        } else {
+            ringbuf_get(&rxbuf);
+            if (ringbuf_put(&rxbuf, END) != 0) {
+                overflow = 0;
+            }
+        }
+        new_line();
+        process_poll(&serial_line_process);
+    }  else if (c == 0x08 || c == 0x7f) {
+        if (ringbuf_get(&rxbuf) != -1) {
+            white_tape_char();
+        }
+    } else {
+        if (!overflow) {
+            if (ringbuf_put(&rxbuf, c) == 0) {
+                overflow = 1;
+            } else {
+                putchar(c);
+            }
+        }
+    }
+    fflush(stdout);
+    return 0;
+}
 
 PROCESS_THREAD(serial_line_process, ev, data)
 {
@@ -36,16 +87,21 @@ PROCESS_THREAD(serial_line_process, ev, data)
     serial_line_event_message = process_alloc_event();
     ptr = 0;
 
-    while (1) {
+    print_prompt();
+
+    while(1) {
+        /* Fill application buffer until newline or empty */
         int c = ringbuf_get(&rxbuf);
+        
         if (c == -1) {
+            /* Buffer empty, wait for poll */
             PROCESS_YIELD();
         } else {
             if (c != END) {
-                if (ptr < (BUFSIZE - 1)) {
+                if (ptr < BUFSIZE-1) {
                     buf[ptr++] = (uint8_t)c;
                 } else {
-                    /* Ignore char (wait for EOL) */
+                    /* Ignore character (wait for EOL) */
                 }
             } else {
                 /* Terminate */
@@ -59,6 +115,7 @@ PROCESS_THREAD(serial_line_process, ev, data)
                     PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_CONTINUE);
                 }
                 ptr = 0;
+                print_prompt();
             }
         }
     }
@@ -66,49 +123,8 @@ PROCESS_THREAD(serial_line_process, ev, data)
     PROCESS_END();
 }
 
-void serial_line_input(int argc, char **argv)
-{
-    char argbuf[48];
-    uint8_t overflow = 0;
-
-    for (int i = 0; i < argc; i++) {
-        memset(argbuf, '\0', sizeof(argbuf));
-        strcpy(argbuf, argv[i]);
-        for (int j = 0; j < sizeof(argbuf); j++) {
-            if (argbuf[j] != '\0') {
-                if (!overflow) {
-                    if (ringbuf_put(&rxbuf, argbuf[j]) == 0) {
-                        overflow = 1;
-                    }
-                }
-            } else {
-                break;
-            }
-        }
-        if (i != argc) {
-            /* add space in between argv */
-            if (!overflow) {
-                if (ringbuf_put(&rxbuf, ' ') == 0) {
-                    overflow = 1;
-                }
-            }
-        }
-    }
-
-    /* put end char as marker */
-    if (!overflow) {
-        if (ringbuf_put(&rxbuf, END) == 0) {
-            overflow = 1;
-        }
-    }
-
-    if (!overflow) {
-        process_poll(&serial_line_process);
-    }
-}
-
 void serial_line_init(void)
 {
-    ringbuf_init(&rxbuf, rxbuf_data, sizeof(rxbuf_data));
-    process_start(&serial_line_process, NULL);
+  ringbuf_init(&rxbuf, rxbuf_data, sizeof(rxbuf_data));
+  process_start(&serial_line_process, NULL);
 }

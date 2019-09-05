@@ -5,7 +5,7 @@
 extern "C" {
 #endif
 
-#define ISR_STACKSIZE (1024UL)
+#define MAIN_STACKSIZE (1024 * 64) /* main stack size 64KB */
 
 /* ARM Cortex-M specific CPU configuration */
 #define CPU_DEFAULT_IRQ_PRIO (63U)
