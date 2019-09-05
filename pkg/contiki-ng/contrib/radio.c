@@ -8,6 +8,7 @@
 #include "net/queuebuf.h"
 #include "net/netstack.h"
 #include "net/mac/csma/csma.h"
+#include "lib/ringbufindex.h"
 
 #include "centauri.h"
 
@@ -19,6 +20,7 @@
 
 enum {
     RADIO_BUFFER_SIZE = CENTAURI_PAYLOAD_SIZE,
+    RADIO_PKT_MAX = 4,
 };
 
 enum {
@@ -35,6 +37,11 @@ typedef enum {
     RADIO_STATE_TRANSMIT = 3,
 } radio_state_t;
 
+typedef struct {
+    uint8_t data[RADIO_BUFFER_SIZE];
+    uint16_t datalen;
+} radio_pkt_t;
+
 PROCESS(centauri_process, "Centauri process");
 
 static radio_value_t radio_txmode;
@@ -42,14 +49,14 @@ static radio_value_t radio_rxmode;
 static uint8_t radio_channel;
 static int8_t radio_txpower;
 static uint8_t radio_txlen;
-static uint8_t radio_rxlen;
 static int radio_cca_rssi;
 static int radio_cca_threshold;
-static uint8_t radio_rxbuf[RADIO_BUFFER_SIZE];
 static uint8_t radio_txbuf[RADIO_BUFFER_SIZE];
 static uint32_t radio_status;
 static radio_state_t radio_state = RADIO_STATE_DISABLED;
 static int8_t radio_pktcount;
+static struct ringbufindex radio_pktrb;
+static radio_pkt_t radio_pkt[RADIO_PKT_MAX];
 
 // contiki radio api
 static int radio_init(void);
@@ -91,13 +98,13 @@ PROCESS_THREAD(centauri_process, ev, data)
 
     while (1) {
         PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
-        packetbuf_clear();
-        int len = radio_read(packetbuf_dataptr(), PACKETBUF_SIZE);
-        packetbuf_set_datalen(len);
-        NETSTACK_MAC.input();
-        radio_pktcount--;
-        /* make sure there is no pending pkt, otherwise we need rxpkt ringbuffer */
-        assert(radio_pktcount == 0);
+        while (radio_pktcount != 0) {
+            packetbuf_clear();
+            int len = radio_read(packetbuf_dataptr(), PACKETBUF_SIZE);
+            packetbuf_set_datalen(len);
+            NETSTACK_MAC.input();
+            radio_pktcount -= 1;
+        }
     }
 
     PROCESS_END();
@@ -107,7 +114,10 @@ static int radio_init(void)
 {
     cent_dataset_t *cent = centauri_init();
 
-    memset(radio_rxbuf, 0, sizeof(radio_rxbuf));
+    for (uint8_t i = 0; i < RADIO_PKT_MAX; i++) {
+        memset(radio_pkt[i].data, 0, RADIO_BUFFER_SIZE);
+        radio_pkt[i].datalen = 0;
+    }
     memset(radio_txbuf, 0, sizeof(radio_txbuf));
 
     radio_channel = IEEE802154_DEFAULT_CHANNEL;
@@ -119,6 +129,8 @@ static int radio_init(void)
 
     radio_status = 0;
     radio_state = RADIO_STATE_RECEIVE;
+
+    ringbufindex_init(&radio_pktrb, RADIO_PKT_MAX);
 
     process_start(&centauri_process, NULL);
 
@@ -210,13 +222,22 @@ static int radio_send(const void *data, unsigned short len)
 
 static int radio_read(void *buf, unsigned short size)
 {
-    int ret = MIN(size, radio_rxlen);
-    memcpy(buf, (uint8_t *)&radio_rxbuf, MIN(size, radio_rxlen));
-    if ((radio_rxlen == CSMA_ACK_LEN) && (radio_status & RADIO_ACK_RECEIVED)) {
+    int rbindex = ringbufindex_peek_get(&radio_pktrb);
+    assert(rbindex != -1);
+
+    ringbufindex_get(&radio_pktrb);
+
+    int len = MIN(size, radio_pkt[rbindex].datalen);
+
+    memcpy(buf, radio_pkt[rbindex].data, len);
+
+    if ((radio_pkt[rbindex].datalen == CSMA_ACK_LEN) && (radio_status & RADIO_ACK_RECEIVED)) {
         radio_status &= ~RADIO_ACK_RECEIVED;
     }
-    radio_rxlen = 0;
-    return ret;
+
+    radio_pkt[rbindex].datalen = 0;
+
+    return len;
 }
 
 static int radio_channel_clear(void)
@@ -287,8 +308,13 @@ static void centauri_rxcmp_cb(void *arg)
     /* make sure low level driver state is the same with high level driver */
     assert(radio_state == RADIO_STATE_RECEIVE);
 
-    memcpy((uint8_t *)&radio_rxbuf, cent->rxdata, MIN(sizeof(radio_rxbuf), cent->rxindex));
-    radio_rxlen = MIN(sizeof(radio_rxbuf), cent->rxindex);
+    int rbindex = ringbufindex_peek_put(&radio_pktrb);
+    assert(rbindex != -1);
+
+    memcpy(radio_pkt[rbindex].data, cent->rxdata, MIN(RADIO_BUFFER_SIZE, cent->rxindex));
+    radio_pkt[rbindex].datalen = MIN(RADIO_BUFFER_SIZE, cent->rxindex);
+
+    ringbufindex_put(&radio_pktrb);
 
     if ((radio_status & RADIO_ACK_WAIT) && cent->rxindex == CSMA_ACK_LEN) {
         radio_status |= RADIO_ACK_RECEIVED;
