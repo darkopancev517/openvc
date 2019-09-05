@@ -1,13 +1,29 @@
 ###################################################
 # MAKE ARGS
 ###################################################
-ifeq ($(v), 1)
+ifeq ($(v),1)
 Q =
 else
 Q = @
 endif
 
 DEVELHELP ?= 0
+
+NODE ?= 0
+ROOT ?= 0
+
+ifneq ($(NODE),0)
+DEVICE_ID = $(NODE)
+DEVICE_ROLE = node
+endif
+
+ifneq ($(ROOT),0)
+DEVICE_ID = $(ROOT)
+DEVICE_ROLE = root
+endif
+
+DEVICE_ID ?= 0
+DEVICE_ROLE ?= node
 
 ###################################################
 # Commands
@@ -47,7 +63,7 @@ export CORTEXM = m3
 export ARCH = armv7-m
 endif
 
-BUILD = $(TOP)/build/$(CPU)
+BUILD = $(TOP)/build/$(CPU)_$(DEVICE_ROLE)_$(DEVICE_ID)
 
 ###################################################
 # Images
@@ -150,6 +166,14 @@ endif
 ifeq ($(PKG_CONTIKI_NG_MAKE_ROUTING),MAKE_ROUTING_RPL_LITE)
 PKG_CONTIKI_NG_CFLAGS += -DROUTING_CONF_RPL_LITE=1
 endif
+
+ifeq ($(DEVICE_ROLE),root)
+PKG_CONTIKI_NG_CFLAGS += -DDEVICE_ROLE_ROOT
+else
+PKG_CONTIKI_NG_CFLAGS += -DDEVICE_ROLE_NODE
+endif
+
+PKG_CONTIKI_NG_CFLAGS += -DDEVICE_ID=$(DEVICE_ID)
 
 ###################################################
 # Pkg build
@@ -290,6 +314,8 @@ $(FIRMWARE_IMAGE).lst: $(FIRMWARE_IMAGE).elf
 $(FIRMWARE): FIRMWARE_OBJS $(FIRMWARE_IMAGE).bin $(FIRMWARE_IMAGE).lst
 	$(SIZE) --format=berkeley $(FIRMWARE_IMAGE).elf
 	@mv $(FIRMWARE_IMAGE).elf $(FIRMWARE_IMAGE).bin $(BUILD)
+	@mv $(BUILD)/$(FIRMWARE).bin $(BUILD)/$(CPU)_$(DEVICE_ROLE)_$(DEVICE_ID).bin
+	@mv $(BUILD)/$(FIRMWARE).elf $(BUILD)/$(CPU)_$(DEVICE_ROLE)_$(DEVICE_ID).elf
 
 $(OPENVC): $(FIRMWARE) | $(BUILD)
 
