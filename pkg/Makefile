@@ -86,6 +86,7 @@ SRCS_PKG_CONTIKI_NG_NET_MAC_TSCH += $(addprefix contiki-ng/repo/os/net/mac/tsch/
     tsch-schedule.c \
     tsch-security.c \
     tsch-slot-operation.c \
+    tsch-timeslot-timing.c \
     tsch-stats.c \
     tsch.c \
     )
