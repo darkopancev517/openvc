@@ -24,11 +24,11 @@ PROCESS_THREAD(uart_arch_process, ev, data)
     while (1) {
         PROCESS_WAIT_EVENT_UNTIL(ev == PROCESS_EVENT_POLL);
 #ifndef CONTIKI_NG_SNIFFER
-        while (isrpipe_read(&stdio_uart_isrpipe, &uart_data, 1)) {
+        if (isrpipe_read(&stdio_uart_isrpipe, &uart_data, 1)) {
             serial_line_input_byte((unsigned char)uart_data);
         }
 #else
-        while (isrpipe_read(&sensniff_uart_isrpipe, &uart_data, 1)) {
+        if (isrpipe_read(&sensniff_uart_isrpipe, &uart_data, 1)) {
             if (sensniff_io_ctx.cb != NULL) {
                 sensniff_io_ctx.cb((unsigned char)uart_data);
             }
