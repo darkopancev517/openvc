@@ -264,6 +264,8 @@ export LIB_SYS_STDIO_UART = libsys_stdio_uart.a
 export LIB_SYS_SYSCALLS = libsys_syscalls.a
 export LIB_SYS_TIMEX = libsys_timex.a
 export LIB_SYS_XTIMER = libsys_xtimer.a
+export LIB_SYS_ISRPIPE = libsys_isrpipe.a
+export LIB_SYS_TSRB = libsys_tsrb.a
 export LIB_PKG_CONTIKI_NG = libpkg_contiki_ng.a
 export LIB_APPS = libapps.a
 
@@ -290,6 +292,12 @@ FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_TIMEX)
 endif
 ifeq ($(MODULE_XTIMER),1)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_XTIMER)
+endif
+ifeq ($(MODULE_ISRPIPE),1)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_ISRPIPE)
+endif
+ifeq ($(MODULE_TSRB),1)
+FIRMWARE_LIBS += $(FIRMWARE_BUILD)/sys/$(LIB_SYS_TSRB)
 endif
 ifeq ($(MODULE_PKG_CONTIKI_NG),1)
 FIRMWARE_LIBS += $(FIRMWARE_BUILD)/pkg/$(LIB_PKG_CONTIKI_NG)

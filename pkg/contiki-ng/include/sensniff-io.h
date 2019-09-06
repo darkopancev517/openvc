@@ -14,6 +14,12 @@ extern "C" {
 
 typedef int (*sensniff_io_arch_input_cb_t)(unsigned char c);
 
+typedef struct {
+    sensniff_io_arch_input_cb_t cb;
+} sensniff_io_ctx_t;
+
+extern sensniff_io_ctx_t sensniff_io_ctx;
+
 void sensniff_io_arch_init(void);
 
 void sensniff_io_arch_byte_out(unsigned char c);

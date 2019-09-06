@@ -37,10 +37,12 @@ extern "C" {
 
 #define STDIO_UART_DEV                  UART_DEV(1)
 #define STDIO_UART_BAUDRATE             (115200)
+#define STDIO_UART_RX_BUFSIZE           (128)
 
 /* sniffer uart interface */
 #define SENSNIFF_UART_DEV               UART_DEV(0)
 #define SENSNIFF_UART_BAUDRATE          (115200)
+#define SENSNIFF_UART_RX_BUFSIZE        (128)
 
 /* xtimer interface */
 #define XTIMER_DEV                      TIMER_DEV(0)

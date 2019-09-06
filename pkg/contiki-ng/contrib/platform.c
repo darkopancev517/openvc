@@ -15,5 +15,7 @@ void platform_init_stage_two(void)
 
 void platform_init_stage_three(void)
 {
-    // low-level driver and sensor (optional)
+    // driver and sensor init
+    extern void uart_arch_init(void);
+    uart_arch_init();
 }

@@ -36,6 +36,8 @@ static void print_prefix_6addr(const uip_ipaddr_t *ipaddr)
 #endif
 #endif
 
+PROCESS_NAME(uart_arch_process);
+
 int main(void)
 {
     platform_init_stage_one();
@@ -130,6 +132,7 @@ int main(void)
         uint8_t p = 0;
         do {
             p = process_run();
+            process_poll(&uart_arch_process); /* process poll pending char if any */
             if (etimer_pending()) {
                 etimer_request_poll();
             }

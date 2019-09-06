@@ -6,6 +6,8 @@ export MODULE_STDIO_UART := 1
 export MODULE_SYSCALLS := 1
 export MODULE_TIMEX := 1
 export MODULE_XTIMER := 1
+export MODULE_ISRPIPE := 1
+export MODULE_TSRB := 1
 
 ###################################################
 # SYSTEM MODULES COMPILER FLAGS DEFINITION
@@ -28,4 +30,12 @@ endif
 
 ifeq ($(MODULE_XTIMER),1)
 DEF += -DMODULE_XTIMER
+endif
+
+ifeq ($(MODULE_ISRPIPE),1)
+DEF += -DMODULE_ISRPIPE
+endif
+
+ifeq ($(MODULE_TSRB),1)
+DEF += -DMODULE_TSRB
 endif

@@ -7,6 +7,7 @@ SRCS_PKG_CONTIKI_NG_CONTRIB += $(addprefix contiki-ng/contrib/,\
     rtimer-arch.c \
     shell-arch.c \
     slip-arch.c \
+    uart-arch.c \
     watchdog.c \
     )
 
