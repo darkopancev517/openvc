@@ -18,10 +18,10 @@
 
 #define RADIO_ACK_TIMEOUT_VALUE (1 * CLOCK_SECOND)
 #define RADIO_BUFFER_SIZE       CENTAURI_PAYLOAD_SIZE
-#define RADIO_PKT_MAX           (4)
+#define RADIO_PKT_MAX           (8)
 #define RADIO_FREQ_MAX          (928000000)
 #define RADIO_FREQ_MIN          (868000000)
-#define RADIO_FREQ_SPACING      (200)
+#define RADIO_FREQ_SPACING      (200000)
 #define RADIO_CHAN_MAX          (((RADIO_FREQ_MAX - RADIO_FREQ_MIN) / RADIO_FREQ_SPACING) - 1)
 
 enum {
