@@ -2,6 +2,7 @@
 #include <stdbool.h>
 
 #include "contiki.h"
+#include "sys/rtimer.h"
 #include "sys/node-id.h"
 #include "dev/radio.h"
 #include "net/packetbuf.h"
@@ -41,6 +42,7 @@ typedef enum {
 typedef struct {
     uint8_t data[RADIO_BUFFER_SIZE];
     uint16_t datalen;
+    uint32_t timestamp;
 } radio_pkt_t;
 
 PROCESS(centauri_process, "Centauri process");
@@ -54,6 +56,7 @@ static int radio_cca_rssi;
 static int radio_cca_threshold;
 static uint8_t radio_txbuf[RADIO_BUFFER_SIZE];
 static uint32_t radio_status;
+static uint32_t radio_last_packet_timestamp; /* last readed packet timestamp */
 static radio_state_t radio_state = RADIO_STATE_DISABLED;
 static int8_t radio_pktcount;
 static struct ringbufindex radio_pktrb;
@@ -137,6 +140,7 @@ static int radio_init(void)
     radio_pktcount = 0;
 
     radio_status = 0;
+    radio_last_packet_timestamp = 0;
     radio_state = RADIO_STATE_RECEIVE;
 
     ringbufindex_init(&radio_pktrb, RADIO_PKT_MAX);
@@ -246,7 +250,10 @@ static int radio_read(void *buf, unsigned short size)
         radio_status &= ~RADIO_ACK_RECEIVED;
     }
 
+    radio_last_packet_timestamp = radio_pkt[rbindex].timestamp;
+
     radio_pkt[rbindex].datalen = 0;
+    radio_pkt[rbindex].timestamp = 0;
 
     return len;
 }
@@ -379,9 +386,14 @@ static radio_result_t radio_set_value(radio_param_t param, radio_value_t value)
 
 static radio_result_t radio_get_object(radio_param_t param, void *dest, size_t size)
 {
-    (void)param;
-    (void)dest;
-    (void)size;
+    if (param == RADIO_PARAM_LAST_PACKET_TIMESTAMP) {
+        if (size != sizeof(rtimer_clock_t) || !dest) {
+            return RADIO_RESULT_INVALID_VALUE;
+        }
+        *(rtimer_clock_t *)dest = radio_last_packet_timestamp;
+        return RADIO_RESULT_OK;
+    }
+
     return RADIO_RESULT_NOT_SUPPORTED;
 }
 
@@ -405,6 +417,7 @@ static void centauri_rxcmp_cb(void *arg)
 
     memcpy(radio_pkt[rbindex].data, cent->rxdata, MIN(RADIO_BUFFER_SIZE, cent->rxindex));
     radio_pkt[rbindex].datalen = MIN(RADIO_BUFFER_SIZE, cent->rxindex);
+    radio_pkt[rbindex].timestamp = RTIMER_NOW();
 
     ringbufindex_put(&radio_pktrb);
 
