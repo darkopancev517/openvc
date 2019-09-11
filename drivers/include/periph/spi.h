@@ -38,6 +38,7 @@ enum {
     SPI_NOCS    = -2,
     SPI_NOMODE  = -3,
     SPI_NOCLK   = -4,
+    SPI_LOCKED  = -5,
 };
 
 /**

@@ -6,6 +6,7 @@
 #include "irq.h"
 
 #include "periph/spi.h"
+#include "xtimer.h"
 
 /**
  * Number of SPI peripheral interface.
@@ -17,7 +18,6 @@ typedef struct spi_config {
     spi_mode_t mode;
     spi_clk_t clk;
     uint8_t spi_lock;
-    unsigned irqstate;
 } spi_config_t;
 
 static uint8_t spi_apbperiph[SPI_NUMOF] = {
@@ -27,9 +27,9 @@ static uint8_t spi_apbperiph[SPI_NUMOF] = {
 };
 
 static spi_config_t spi_config[SPI_NUMOF] = {
-    { SPI_CS_UNDEF, SPI_MODE_0, SPI_CLK_5MHZ, 0, 0 },
-    { SPI_CS_UNDEF, SPI_MODE_0, SPI_CLK_5MHZ, 0, 0 },
-    { SPI_CS_UNDEF, SPI_MODE_0, SPI_CLK_5MHZ, 0, 0 }
+    { SPI_CS_UNDEF, SPI_MODE_0, SPI_CLK_5MHZ, 0 },
+    { SPI_CS_UNDEF, SPI_MODE_0, SPI_CLK_5MHZ, 0 },
+    { SPI_CS_UNDEF, SPI_MODE_0, SPI_CLK_5MHZ, 0 }
 };
 
 static uint8_t spi_dma_reqsrc_rx[SPI_NUMOF] = {
@@ -172,6 +172,10 @@ int spi_acquire(spi_t bus, spi_cs_t cs, spi_mode_t mode, spi_clk_t clk)
 {
     assert(bus < SPI_NUMOF && bus > 0);
 
+    if (spi_config[bus].spi_lock) {
+        return SPI_LOCKED;
+    }
+
     if (cs != SPI_CS_UNDEF && spi_config[bus].cs != cs) {
         spi_init_cs(bus, cs);
         spi_config[bus].cs = cs;
@@ -179,7 +183,6 @@ int spi_acquire(spi_t bus, spi_cs_t cs, spi_mode_t mode, spi_clk_t clk)
 
     /* take spi lock */
     spi_config[bus].spi_lock = 1;
-    spi_config[bus].irqstate = irq_disable();
 
     if (spi_config[bus].mode != mode) {
         _spi_config_mode(bus, mode);
@@ -199,7 +202,6 @@ void spi_release(spi_t bus)
 
     /* give spi lock */
     spi_config[bus].spi_lock = 0;
-    irq_restore(spi_config[bus].irqstate);
 }
 
 static void _transfer_dma(spi_t bus, const void *out, void *in, size_t len)
@@ -219,10 +221,15 @@ static void _transfer_dma(spi_t bus, const void *out, void *in, size_t len)
     vcdma_enable(DMA_CH0);
 
     int busy = 0;
+
+    uint32_t timeout = xtimer_now().ticks32 + 10000; /* 10 ms timeout */
+
     do {
         busy = vcdma_get_int_status(DMA_CH0, DMA_INTSTS_BUSY) ||
                vcdma_get_int_status(DMA_CH1, DMA_INTSTS_BUSY);
-    } while (busy);
+    } while (busy && timeout > xtimer_now().ticks32);
+
+    assert(!busy && timeout > xtimer_now().ticks32);
 }
 
 void spi_transfer_bytes(spi_t bus, spi_cs_t cs, bool cont, const void *out, void *in, size_t len)

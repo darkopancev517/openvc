@@ -22,21 +22,25 @@
 #include "periph/gpio.h"
 #include "periph/spi.h"
 
+#include "contiki.h"
+
 #define CENT_MSG_EVENT_IRQ (0x10)
 
 #define CENTAURI_TX_TIMEOUT_VALUE (200000ul) /* 100 ms */
 
 static uint8_t cent_rxbuf[CENTAURI_BUFFER_SIZE];
 static cent_dataset_t cent_data;
+static uint32_t cent_int_counter = 0;
 
 /* variable used globaly by centauri */
 uint32_t rx_complete;
 extern uint32_t bm_read_next;
 
-static void cent_spi_acquire(void);
+static int cent_spi_acquire(void);
 static void cent_spi_release(void);
 static uint32_t cent_tx_prefill(uint8_t *data, uint16_t length);
 static void cent_gpio_int_cb(void *arg);
+static void cent_handle_event_irq(void);
 
 cent_dataset_t *centauri_init(void)
 {
@@ -62,7 +66,7 @@ cent_dataset_t *centauri_init(void)
     /* start listening to centauri gpio interrupt */
     cent_data.irqlisten = 1;
 
-    /* stage 1 -------------------------------------------------------------- */
+    /* centauri init stage 1 ------------------------------------------------ */
 
     cent_spi_acquire();
 
@@ -72,29 +76,28 @@ cent_dataset_t *centauri_init(void)
 
     cent_spi_release();
 
-    xtimer_usleep(2000); /* give some delay to receive centauri alive status */
+    while (cent_int_counter == 0);
 
-    uint32_t timeout = xtimer_now().ticks32 + 1000000; /* 1 second timeout */
-    while (cent_data.alivestatus == 0 && timeout > xtimer_now().ticks32) {}
+    cent_handle_event_irq();
 
     assert(cent_data.alivestatus);
 
-    /* stage 2 -------------------------------------------------------------- */
+    /* centauri init stage 2 ------------------------------------------------ */
 
     cent_spi_acquire();
 
     cent_misc_config(CENTAURI_PAYLOAD_SIZE + 4); /* payload + fcs */
     cent_radio_config(nvsets.cent.frequency);
     cent_cmd_init();
-	RfLdo12vCOvREF(7);  //LDO output 1.3V
-	FilterIfSetting();
+    RfLdo12vCOvREF(7);  //LDO output 1.3V
+    FilterIfSetting();
     cent_cal_load();
     cent_data.txpwr = nvsets.cent.tx_power;
-	/* set rssi config to avoid rx_rssi_ib_lvl transfer to dB-domain siturate */
-	PhyInBandRssiCalcuShift(4); /* rx_rssi_ib_lvl[21:4] */
-	cent_cmd_rssi_offset(6);
-	CentauriCsrWrite(0x40028030, 0x00000000 | (3 << 8) );  /* CAP=3 */
-	TransceiverDcocSetting();
+    /* set rssi config to avoid rx_rssi_ib_lvl transfer to dB-domain siturate */
+    PhyInBandRssiCalcuShift(4); /* rx_rssi_ib_lvl[21:4] */
+    cent_cmd_rssi_offset(6);
+    CentauriCsrWrite(0x40028030, 0x00000000 | (3 << 8) );  /* CAP=3 */
+    TransceiverDcocSetting();
     cent_cmd_cal_iq();
     cent_cmd_cal_32k();
     cent_cmd_cal_4m();
@@ -107,7 +110,7 @@ cent_dataset_t *centauri_init(void)
 
     cent_spi_release();
 
-    /* stage 3 -------------------------------------------------------------- */
+    /* centauri init stage 3 ------------------------------------------------ */
 
     centauri_set_freq(nvsets.cent.frequency);
     centauri_rx();
@@ -252,9 +255,9 @@ void centauri_reg_rw(uint32_t addr, uint32_t *word)
 
 /* private functions implementation ----------------------------------------- */
 
-static void cent_spi_acquire(void)
+static int cent_spi_acquire(void)
 {
-    spi_acquire(BOARD_CENTAURI_SPI_DEV, BOARD_CENTAURI_SPI_CS_PIN, SPI_MODE_0, SPI_CLK_1MHZ);
+    return spi_acquire(BOARD_CENTAURI_SPI_DEV, BOARD_CENTAURI_SPI_CS_PIN, SPI_MODE_0, SPI_CLK_1MHZ);
 }
 
 static void cent_spi_release(void)
@@ -453,6 +456,13 @@ exit:
 static void cent_gpio_int_cb(void *arg)
 {
     if (cent_data.irqlisten) {
-        cent_handle_event_irq();
+        cent_int_counter++;
+        if (cent_data.alivestatus) {
+            if (cent_spi_acquire() != SPI_LOCKED) {
+                cent_handle_event_irq();
+            } else {
+                printf("SPI IS LOCKED\n");
+            }
+        }
     }
 }

@@ -149,8 +149,6 @@ static int radio_init(void)
 
     cent->rxcmp.app = centauri_rxcmp_cb;
 
-    radio_set_channel(radio_channel);
-
     return 1;
 }
 
