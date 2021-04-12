@@ -10,6 +10,7 @@
 #include "centauri_cmd.h"
 #include "centauri_mac.h"
 #include "centauri_pmu_csr.h"
+#include "centauri_timer.h"
 
 #include "phy_csr.h"
 #include "TransceiverInit.h"
@@ -17,7 +18,6 @@
 
 #include "board.h"
 #include "nvsets.h"
-#include "xtimer.h"
 
 #include "periph/gpio.h"
 #include "periph/spi.h"
@@ -124,9 +124,9 @@ cent_dataset_t *centauri_init(void)
 void centauri_reset(void)
 {
     gpio_clear(BOARD_CENTAURI_RESET_PIN);
-    xtimer_usleep(2000);
+    cent_busy_wait(2000);
     gpio_set(BOARD_CENTAURI_RESET_PIN);
-    xtimer_usleep(10000);
+    cent_busy_wait(10000);
 }
 
 void centauri_rx(void)
@@ -177,10 +177,10 @@ int centauri_tx(uint8_t *data, uint16_t length)
 
     cent_spi_release();
 
-    uint32_t timeout = xtimer_now().ticks32 + CENTAURI_TX_TIMEOUT_VALUE;
-    while (!cent_data.phytxcmp && timeout > xtimer_now().ticks32);
+    uint32_t timeout = cent_usec_now() + CENTAURI_TX_TIMEOUT_VALUE;
+    while (!cent_data.phytxcmp && timeout > cent_usec_now());
 
-    if (cent_data.phytxcmp != 1 && timeout < xtimer_now().ticks32) {
+    if (cent_data.phytxcmp != 1 && timeout < cent_usec_now()) {
         ret = -1; /* tx failed */
     }
 

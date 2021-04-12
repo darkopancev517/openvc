@@ -15,6 +15,8 @@ extern "C" {
 /* NVIC use 64 priority levels */
 #define __NVIC_PRIO_BITS (6U)
 
+#define __Vendor_SysTickConfig (0U)
+
 typedef enum {
     NonMaskableInt_IRQn     = -14,
     HardFault_IRQn          = -13,

@@ -132,10 +132,6 @@ int main(void)
         uint8_t p = 0;
         do {
             p = process_run();
-            process_poll(&uart_arch_process); /* process poll pending char if any */
-            if (etimer_pending()) {
-                etimer_request_poll();
-            }
         } while (p > 0);
     }
 

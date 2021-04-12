@@ -31,4 +31,8 @@ void cpu_init(void)
 
     /* disable watchdog timer */
     vcwdt_disable();
+
+    /* initialize systick */
+    extern void systick_init(void);
+    systick_init();
 }

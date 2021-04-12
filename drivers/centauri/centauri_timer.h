@@ -9,6 +9,8 @@ extern "C" {
 
 void cent_busy_wait(uint32_t us);
 
+uint32_t cent_usec_now(void);
+
 #ifdef __cplusplus
 }
 #endif
