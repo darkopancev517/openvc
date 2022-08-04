@@ -11,6 +11,13 @@
 extern "C" {
 #endif
 
+#ifdef SOC_DEBUG
+#include <stdio.h>
+#define soc_printf(fmt, ...) printf(fmt, ##__VA_ARGS__)
+#else
+#define soc_printf(fmt, ...)
+#endif
+
 #include "vcmisc.h"
 #include "vcwdt.h"
 #include "vcgpio.h"
@@ -25,6 +32,7 @@ extern "C" {
 #include "vcpwm.h"
 #include "vcrtc.h"
 #include "vcsfio.h"
+#include "vccrypt.h"
 
 extern uint32_t SystemCoreClock;
 
