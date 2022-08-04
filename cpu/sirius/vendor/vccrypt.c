@@ -981,7 +981,7 @@ static void set_iv(uint8_t *iv, uint8_t flags, const uint8_t *nonce, uint16_t co
     iv[15] = counter & 0xff;
 }
 
-static void cbc_encrypt(uint8_t *key, uint8_t *nonce,
+static void cbc_encrypt(uint8_t mode, uint8_t *key, uint8_t *nonce,
                         uint8_t *a, uint16_t a_len,
                         uint8_t *B0, uint8_t *A0,
                         uint8_t *result, uint8_t mic_len)
@@ -1019,7 +1019,7 @@ static void cbc_encrypt(uint8_t *key, uint8_t *nonce,
 
     memset(&cbc_head, 0x0, cbc_ctrl_len);
     cbc_head.ctrl.fields.type = VCSEC_TYPE_AES;
-    cbc_head.ctrl.fields.mode = VCSEC_MODE_CBC_128;
+    cbc_head.ctrl.fields.mode = mode;
     cbc_head.ctrl.fields.head_len = cbc_ctrl_len;
 
     memcpy(cbc_head.IV, iv, AES_128_BLOCK_SIZE);
@@ -1084,7 +1084,8 @@ exit:
 
 #define VCSWAP(n) (uint16_t)((((uint16_t) (n)) << 8) | (((uint16_t) (n)) >> 8))
 
-static void ccm_encrypt(uint8_t forward, uint8_t *key, uint8_t *nonce,
+static void ccm_encrypt(uint8_t forward, uint8_t mode,
+                        uint8_t *key, uint8_t *nonce,
                         uint8_t *m, uint16_t m_len,
                         uint8_t *a, uint16_t a_len,
                         uint8_t *B0, uint8_t *A0,
@@ -1121,7 +1122,7 @@ static void ccm_encrypt(uint8_t forward, uint8_t *key, uint8_t *nonce,
     memcpy(ccm_head.B0, B0, AES_128_BLOCK_SIZE);
     memcpy(ccm_head.A0, A0, AES_128_BLOCK_SIZE);
 
-    ccm_head.ctrl.fields.config = (forward == 1) ? 0x3 : 0x2;
+    ccm_head.ctrl.fields.config = (forward == VC_CCM_ENCRYPT) ? 0x3 : 0x2;
 
     ccm_head.ciper_len = VCSWAP(m_len);
     ccm_head.auth_len = VCSWAP(sizeof(a_add) + a_len + a_pad_len);
@@ -1167,21 +1168,20 @@ void vccrypt_aes_ccm_encrypt(uint8_t forward, uint8_t *key, uint8_t *nonce,
     set_iv(A0, CCM_STAR_ENCRYPTION_FLAGS, nonce, 0);
 
     if (m_len != 0) {
-        ccm_encrypt(forward, key, nonce, m, m_len, a, a_len, B0, A0, result, mic_len);
+        ccm_encrypt(forward, VCSEC_MODE_CCM_128, key, nonce, m, m_len, a, a_len, B0, A0, result, mic_len);
         goto exit;
     }
 
     // payload == 0 and only support encryption to generate MIC
-    if (m_len == 0 && forward == 1) {
-        cbc_encrypt(key, nonce, a, a_len, B0, A0, result, mic_len);
-    } else if (m_len == 0 && forward == 0) {
-        cbc_encrypt(key, nonce, a, a_len, B0, A0, result, mic_len);
+    if ((m_len == 0 && forward == VC_CCM_ENCRYPT) || (m_len == 0 && forward == VC_CCM_STAR_DECRYPT)) {
+        cbc_encrypt(VCSEC_MODE_CBC_128, key, nonce, a, a_len, B0, A0, result, mic_len);
     }
 
 exit:
     vcradio_unlock_irq(rs);
     return;
 }
+
 void vccrypt_aes_ecb_encrypt(uint8_t forward,uint8_t mode, uint8_t *key
 							,uint8_t *data, uint16_t data_len,uint8_t *result)
 {
@@ -1224,7 +1224,7 @@ void vccrypt_aes_ecb_encrypt(uint8_t forward,uint8_t mode, uint8_t *key
             break;
     }
 
-    ecb_head.ctrl.fields.config = (forward == 1) ? 0x3 : 0x2;
+    ecb_head.ctrl.fields.config = (forward == VC_CCM_ENCRYPT) ? 0x3 : 0x2;
     
     vcdmac_pkt_payload_reset(&pkt);
     vcdmac_pkt_payload_attach(&pkt, &ecb_head, ecb_head.ctrl.fields.head_len);
@@ -1246,6 +1246,7 @@ void vccrypt_aes_ecb_encrypt(uint8_t forward,uint8_t mode, uint8_t *key
         memcpy(result, vcdmac_trx_global.sec_rx_ptr + 4, data_len);
     }
 }
+
 void vccrypt_aes_cbc_encrypt(uint8_t forward,uint8_t mode, uint8_t *key, uint8_t *iv, uint16_t iv_len,
 							uint8_t *data, uint16_t data_len,uint8_t *result)
 {
@@ -1270,7 +1271,7 @@ void vccrypt_aes_cbc_encrypt(uint8_t forward,uint8_t mode, uint8_t *key, uint8_t
             cbc_head.ctrl.fields.head_len = ((sizeof(struct VCSEC_CTRL_HEADER_CBC)));
             memcpy(cbc_head.KEY, key, AES_128_BLOCK_SIZE);
 			      memcpy(cbc_head.IV, iv, iv_len);
-			      cbc_head.ctrl.fields.config = (forward == 1) ? 0x3 : 0x2;
+			      cbc_head.ctrl.fields.config = (forward == VC_CCM_ENCRYPT) ? 0x3 : 0x2;
             break;
 
         case VCSEC_MODE_CBC_192:
@@ -1279,7 +1280,7 @@ void vccrypt_aes_cbc_encrypt(uint8_t forward,uint8_t mode, uint8_t *key, uint8_t
             cbc_head_192.ctrl.fields.head_len = (sizeof(struct VCSEC_CTRL_HEADER_CBC_192));
             memcpy(cbc_head_192.KEY, key, AES_192_BLOCK_SIZE);
 			      memcpy(cbc_head_192.IV, iv, iv_len);
-			      cbc_head_192.ctrl.fields.config = (forward == 1) ? 0x3 : 0x2;
+			      cbc_head_192.ctrl.fields.config = (forward == VC_CCM_ENCRYPT) ? 0x3 : 0x2;
 			      break;
 
         case VCSEC_MODE_CBC_256:
@@ -1288,7 +1289,7 @@ void vccrypt_aes_cbc_encrypt(uint8_t forward,uint8_t mode, uint8_t *key, uint8_t
             cbc_head_256.ctrl.fields.head_len = sizeof(struct VCSEC_CTRL_HEADER_CBC_256);
             memcpy(cbc_head_256.KEY, key, AES_256_BLOCK_SIZE);
 			      memcpy(cbc_head_256.IV, iv, iv_len);
-			      cbc_head_256.ctrl.fields.config = (forward == 1) ? 0x3 : 0x2;
+			      cbc_head_256.ctrl.fields.config = (forward == VC_CCM_ENCRYPT) ? 0x3 : 0x2;
             break;
 
         default:
@@ -1296,7 +1297,7 @@ void vccrypt_aes_cbc_encrypt(uint8_t forward,uint8_t mode, uint8_t *key, uint8_t
             cbc_head.ctrl.fields.head_len = ((sizeof(struct VCSEC_CTRL_HEADER_CBC)));
             memcpy(cbc_head.KEY, key, AES_128_BLOCK_SIZE);
 			      memcpy(cbc_head.IV, iv, iv_len);
-			      cbc_head.ctrl.fields.config = (forward == 1) ? 0x3 : 0x2;
+			      cbc_head.ctrl.fields.config = (forward == VC_CCM_ENCRYPT) ? 0x3 : 0x2;
             break;
     }
 
@@ -1394,3 +1395,108 @@ void vccrypt_crc_encrypt(uint8_t mode,uint8_t *data, uint16_t data_len,uint8_t *
     }
 }
 
+// -------------------------------- new vccrypt api implementation --------------------------------
+
+static int vccrypt_ccm_starts(vc_ccm_context *ctx, size_t length,
+                               int mode, const unsigned char *iv,
+                               size_t iv_len)
+{
+    /* Also implies q is within bounds */
+    if (iv_len < 7 || iv_len > 13)
+        return VC_ERR_CCM_BAD_INPUT;
+
+    if ((ctx->mode == VC_CCM_STAR_DECRYPT || ctx->mode == VC_CCM_STAR_ENCRYPT) && iv_len != 13)
+        return VC_ERR_CCM_BAD_INPUT;
+
+    ctx->mode = mode;
+    ctx->q = 16 - 1 - (unsigned char) iv_len;
+
+    /*
+     * Prepare counter block for encryption:
+     * 0        .. 0        flags
+     * 1        .. iv_len   nonce (aka iv)
+     * iv_len+1 .. 15       counter (initially 1)
+     *
+     * With flags as (bits):
+     * 7 .. 3   0
+     * 2 .. 0   q - 1
+     */
+    memset(ctx->A0, 0, 16);
+    ctx->A0[0] = ctx->q - 1;
+    memcpy(ctx->A0 + 1, iv, iv_len);
+    memset(ctx->A0 + 1 + iv_len, 0, ctx->q);
+    ctx->A0[15] = (ctx->mode == VC_CCM_STAR_DECRYPT || ctx->mode == VC_CCM_STAR_ENCRYPT) ? 0 : 1;
+
+    /*
+     * First block:
+     * 0        .. 0        flags
+     * 1        .. iv_len   nonce (aka iv)
+     * iv_len+1 .. 15       length
+     *
+     * With flags as (bits):
+     * 7        0
+     * 6        add present?
+     * 5 .. 3   (t - 2) / 2
+     * 2 .. 0   q - 1
+     */
+    memset(ctx->B0, 0, 16);
+    memcpy(ctx->B0 + 1, iv, iv_len);
+    ctx->B0[0] |= (ctx->add_len > 0) << 6;
+    ctx->B0[0] |= ((ctx->tag_len - 2) / 2) << 3;
+    ctx->B0[0] |= ctx->q - 1;
+    ctx->B0[14] = length >> 8;
+    ctx->B0[15] = length & 0xff;
+
+    return 0;
+}
+
+void vccrpt_ccm_init(vc_ccm_context *ctx)
+{
+    vccrypt_init(0);
+    memset(ctx, 0, sizeof(vc_ccm_context));
+}
+
+static int ccm_auth_crypt(vc_ccm_context *ctx, int mode, size_t length,
+                          const unsigned char *iv, size_t iv_len,
+                          const unsigned char *add, size_t add_len,
+                          const unsigned char *input, unsigned char *output,
+                          unsigned char *tag, size_t tag_len)
+{
+    int ret = 0;
+
+    if ((ret = vccrypt_ccm_starts(ctx, length, mode, iv, iv_len)) != 0)
+        return ret;
+
+    if (length != 0) {
+
+    }
+
+    return 0;
+}
+
+int vccrypt_ccm_encrypt_and_tag(vc_ccm_context *ctx, size_t length,
+                                const unsigned char *iv, size_t iv_len,
+                                const unsigned char *add, size_t add_len,
+                                const unsigned char *input, unsigned char *output,
+                                unsigned char *tag, size_t tag_len)
+{
+    int ret = 0;
+
+    int rs = vcradio_lock_irq();
+
+    ret = ccm_auth_crypt(ctx, VC_CCM_ENCRYPT, length, iv, iv_len,
+                         add, add_len, input, output, tag, tag_len);
+
+    vcradio_unlock_irq(rs);
+
+    return ret;
+}
+
+int vccrypt_ccm_auth_decrypt(vc_ccm_context *ctx, size_t length,
+                             const unsigned char *iv, size_t iv_len,
+                             const unsigned char *add, size_t add_len,
+                             const unsigned char *input, unsigned char *output,
+                             const unsigned char *tag, size_t tag_len)
+{
+  return 0;
+}
