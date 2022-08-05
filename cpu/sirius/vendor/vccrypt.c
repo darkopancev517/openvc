@@ -1337,6 +1337,7 @@ void vccrypt_aes_cbc_encrypt(uint8_t forward,uint8_t mode, uint8_t *key, uint8_t
         memcpy(result, vcdmac_trx_global.sec_rx_ptr + 4, data_len);
     }	
 }
+
 void vccrypt_crc_encrypt(uint8_t mode,uint8_t *data, uint16_t data_len,uint8_t *result)
 {
 	  volatile struct VCCRYPT_REG_SPACE *crypt_reg = (volatile struct VCCRYPT_REG_SPACE *)VCCRYPT_REG_BASE;
