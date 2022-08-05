@@ -63,31 +63,23 @@ enum
 
 typedef struct vc_cipher_context_t
 {
-    /* Note: parameters must be set by user */
+    /* Note: must be set by user */
     vc_cipher_type_t type;
     vc_cipher_mode_t mode;
     uint8_t operation;
-    unsigned char iv[VC_CRYPT_MAX_IV_LENGTH];
-    size_t iv_size;
 } vc_cipher_context_t;;
 
 typedef struct vc_ccm_context
 {
-    /* Note: parameters must be set by user */
+    /* Note: must be set by user */
     unsigned char key[VC_CRYPT_MAX_KEY_LENGTH];
     unsigned char key_len;
-    size_t add_len;
-    size_t tag_len;
     vc_cipher_context_t cipher_ctx;
 
-    /* Note: parameters below will be automatically set in code */
+    /* Note: below will be automatically set in code */
     unsigned char B0[VC_CRYPT_MAX_BLOCK_LENGTH];
     unsigned char A0[VC_CRYPT_MAX_BLOCK_LENGTH];
-    unsigned char q;
-    vc_ccm_mode_t mode;
 } vc_ccm_context;
-
-void vccrypt_ccm_init(vc_ccm_context *ctx);
 
 int vccrypt_ccm_encrypt_and_tag(vc_ccm_context *ctx, size_t length,
                                 const unsigned char *iv, size_t iv_len,

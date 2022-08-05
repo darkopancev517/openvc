@@ -7,6 +7,7 @@
 #include "vcsoc.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define SEC_MODE 0
 #define ETH_MODE 1
@@ -1390,8 +1391,9 @@ void vccrypt_crc_encrypt(uint8_t mode,uint8_t *data, uint16_t data_len,uint8_t *
 // -------------------------------- new vccrypt api implementation --------------------------------
 
 static int vccrypt_ccm_starts(vc_ccm_context *ctx, size_t length,
-                              vc_ccm_mode_t ccm_mode, const unsigned char *iv,
-                              size_t iv_len)
+                              vc_ccm_mode_t ccm_mode,
+                              const unsigned char *iv, size_t iv_len,
+                              size_t add_len, size_t tag_len)
 {
     /* Also implies q is within bounds */
     if (iv_len < 7 || iv_len > 13)
@@ -1400,24 +1402,23 @@ static int vccrypt_ccm_starts(vc_ccm_context *ctx, size_t length,
     if ((ccm_mode == VC_CCM_STAR_DECRYPT || ccm_mode == VC_CCM_STAR_ENCRYPT) && iv_len != 13)
         return VC_ERR_CCM_BAD_INPUT;
 
-    ctx->mode = ccm_mode;
-    ctx->q = 16 - 1 - (unsigned char) iv_len;
+    unsigned char q = 16 - 1 - (unsigned char) iv_len;
 
     /*
      * Prepare counter block for encryption:
      * 0        .. 0        flags
      * 1        .. iv_len   nonce (aka iv)
-     * iv_len+1 .. 15       counter (initially 1)
+     * iv_len+1 .. 15       counter
      *
      * With flags as (bits):
      * 7 .. 3   0
      * 2 .. 0   q - 1
      */
     memset(ctx->A0, 0, 16);
-    ctx->A0[0] = ctx->q - 1;
+    ctx->A0[0] = q - 1;
     memcpy(ctx->A0 + 1, iv, iv_len);
-    memset(ctx->A0 + 1 + iv_len, 0, ctx->q);
-    ctx->A0[15] = (ctx->mode == VC_CCM_STAR_DECRYPT || ctx->mode == VC_CCM_STAR_ENCRYPT) ? 0 : 1;
+    memset(ctx->A0 + 1 + iv_len, 0, q);
+    ctx->A0[15] = 0;
 
     /*
      * First block:
@@ -1433,19 +1434,13 @@ static int vccrypt_ccm_starts(vc_ccm_context *ctx, size_t length,
      */
     memset(ctx->B0, 0, 16);
     memcpy(ctx->B0 + 1, iv, iv_len);
-    ctx->B0[0] |= (ctx->add_len > 0) << 6;
-    ctx->B0[0] |= ((ctx->tag_len - 2) / 2) << 3;
-    ctx->B0[0] |= ctx->q - 1;
+    ctx->B0[0] |= (add_len > 0) << 6;
+    ctx->B0[0] |= ((tag_len - 2) / 2) << 3;
+    ctx->B0[0] |= q - 1;
     ctx->B0[14] = length >> 8;
     ctx->B0[15] = length & 0xff;
 
     return 0;
-}
-
-void vccrypt_ccm_init(vc_ccm_context *ctx)
-{
-    vccrypt_init(0);
-    memset(ctx, 0, sizeof(vc_ccm_context));
 }
 
 static int ccm_auth_crypt(vc_ccm_context *ctx, vc_ccm_mode_t ccm_mode, size_t length,
@@ -1456,7 +1451,10 @@ static int ccm_auth_crypt(vc_ccm_context *ctx, vc_ccm_mode_t ccm_mode, size_t le
 {
     int ret = 0;
 
-    if ((ret = vccrypt_ccm_starts(ctx, length, ccm_mode, iv, iv_len)) != 0)
+    if (iv == NULL || iv_len == 0)
+        return VC_ERR_CCM_BAD_INPUT;
+
+    if ((ret = vccrypt_ccm_starts(ctx, length, ccm_mode, iv, iv_len, add_len, tag_len)) != 0)
         return ret;
 
     if (length != 0) {

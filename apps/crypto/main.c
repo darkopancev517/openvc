@@ -9,9 +9,10 @@ static void crypto_test3(void);
 
 static void dump(uint8_t *buf, uint32_t len);
 
+// OLD legacy test code
 #define TEST1 1
-#define TEST2 0
-#define TEST3 0
+#define TEST2 1
+#define TEST3 1
 
 int vcradio_lock_irq(void)
 {
@@ -131,9 +132,10 @@ static void crypto_test1(void)
         printf("encrypted: succeed\n");
     } else {
         printf("encrypted: failed\n");
+        while (1);
     }
 
-    dump(m, m_len);
+    //dump(m, m_len);
 
     printf("mic_enc:\n");
     dump(mic_enc, mic_len);
@@ -144,55 +146,179 @@ static void crypto_test1(void)
         printf("decrypted: succeed\n");
     } else {
         printf("decrypted: failed\n");
+        while (1);
     }
 
-    dump(m, m_len);
+    //dump(m, m_len);
 
     printf("mic_dec:\n");
     dump(mic_dec, mic_len);
 
     printf("------------------------------------------------------\n");
-    printf("crypto_test1: NEW API encrypt & decrypt [%u]\n", m_len);
+    printf("crypto_test1: NEW API AES CCM STAR 128 encrypt & decrypt [%u]\n", m_len);
     printf("------------------------------------------------------\n");
 
-    vc_ccm_context context;
-    
-    vccrypt_ccm_init(&context);
+    memset(mic_enc, 0, sizeof(mic_enc));
+    memset(mic_dec, 0, sizeof(mic_dec));
 
-    memcpy(context.key, key, sizeof(key));
-    context.key_len = sizeof(key);
-    context.add_len = a_len;
-    context.tag_len = mic_len;
-
-    context.cipher_ctx.type = VC_CIPHER_AES_128_CCM;
-    context.cipher_ctx.mode = VC_MODE_CCM;
-    context.cipher_ctx.operation = VC_OPERATION_ENCRYPT;
-    memcpy(context.cipher_ctx.iv, nonce, sizeof(nonce));
-    context.cipher_ctx.iv_size = sizeof(nonce);
-
+    uint8_t input[m_len];
     uint8_t output[m_len];
+
+    int ret = 0;
+
+    // ------------------------- CCM STAR ENCRYPTION ------------------------
+
+    vc_ccm_context enc_context;
+    memset(&enc_context, 0, sizeof(vc_ccm_context));
+    
+    memcpy(enc_context.key, key, sizeof(key));
+    enc_context.key_len = sizeof(key);
+    enc_context.cipher_ctx.type = VC_CIPHER_AES_128_CCM;
+    enc_context.cipher_ctx.mode = VC_MODE_CCM;
+    enc_context.cipher_ctx.operation = VC_OPERATION_ENCRYPT;
+
+    memset(input, 0, sizeof(input));
     memset(output, 0, sizeof(output));
 
-    int ret = vccrypt_ccm_star_encrypt_and_tag(&context, m_len,
-                                               nonce, sizeof(nonce),
-                                               a, a_len,
-                                               m, output,
-                                               mic_enc, mic_len);
+    memcpy(input, m, sizeof(input));
+
+    ret = vccrypt_ccm_star_encrypt_and_tag(&enc_context, sizeof(input),
+                                           nonce, sizeof(nonce),
+                                           a, a_len,
+                                           input, output,
+                                           mic_enc, mic_len);
 
     if (ret != 0) {
-        printf("vccrypt_ccm_star_encrypt_and_tag: FAILED\n");
+        printf("vccrypt_ccm_star_encrypt_and_tag: FAILED - ret: %d\n", ret);
+        while (1);
     }
 
     if (memcmp(output, &encrypted[a_len], sizeof(output)) == 0) {
         printf("encrypted: succeed\n");
     } else {
         printf("encrypted: failed\n");
+        while (1);
     }
 
-    dump(output, sizeof(output));
+    //dump(output, sizeof(output));
 
     printf("mic_enc:\n");
     dump(mic_enc, mic_len);
+
+    // ------------------------- CCM STAR DECRYPTION ------------------------
+
+    vc_ccm_context dec_context;
+    memset(&dec_context, 0, sizeof(vc_ccm_context));
+
+    memcpy(dec_context.key, key, sizeof(key));
+    dec_context.key_len = sizeof(key);
+    dec_context.cipher_ctx.type = VC_CIPHER_AES_128_CCM;
+    dec_context.cipher_ctx.mode = VC_MODE_CCM;
+    dec_context.cipher_ctx.operation = VC_OPERATION_DECRYPT;
+
+    memcpy(input, output, sizeof(input));
+    memset(output, 0, sizeof(output));
+
+    ret = vccrypt_ccm_star_auth_decrypt(&dec_context, sizeof(input),
+                                        nonce, sizeof(nonce),
+                                        a, a_len,
+                                        input, output,
+                                        mic_dec, mic_len);
+
+    if (ret != 0) {
+        printf("vccrypt_ccm_star_auth_decrypt: FAILED - ret: %d\n", ret);
+        while (1);
+    }
+
+    if (memcmp(output, &decrypted[a_len], m_len) == 0) {
+        printf("decrypted: succeed\n");
+    } else {
+        printf("decrypted: failed\n");
+        while (1);
+    }
+
+    //dump(output, sizeof(output));
+
+    printf("mic_dec:\n");
+    dump(mic_dec, mic_len);
+
+    printf("------------------------------------------------------\n");
+    printf("crypto_test1: NEW API AES CCM 128 encrypt & decrypt [%u]\n", m_len);
+    printf("------------------------------------------------------\n");
+
+    // ------------------------- CCM ENCRYPTION ------------------------
+
+    memset(&enc_context, 0, sizeof(vc_ccm_context));
+    
+    memcpy(enc_context.key, key, sizeof(key));
+    enc_context.key_len = sizeof(key);
+    enc_context.cipher_ctx.type = VC_CIPHER_AES_128_CCM;
+    enc_context.cipher_ctx.mode = VC_MODE_CCM;
+    enc_context.cipher_ctx.operation = VC_OPERATION_ENCRYPT;
+
+    memset(input, 0, sizeof(input));
+    memset(output, 0, sizeof(output));
+
+    memcpy(input, m, sizeof(input));
+
+    ret = vccrypt_ccm_encrypt_and_tag(&enc_context, sizeof(input),
+                                      nonce, sizeof(nonce),
+                                      a, a_len,
+                                      input, output,
+                                      mic_enc, mic_len);
+
+    if (ret != 0) {
+        printf("vccrypt_ccm_encrypt_and_tag: FAILED - ret: %d\n", ret);
+        while (1);
+    }
+
+    if (memcmp(output, &encrypted[a_len], sizeof(output)) == 0) {
+        printf("encrypted: succeed\n");
+    } else {
+        printf("encrypted: failed\n");
+        while (1);
+    }
+
+    //dump(output, sizeof(output));
+
+    printf("mic_enc:\n");
+    dump(mic_enc, mic_len);
+
+    // ------------------------- CCM DECRYPTION ------------------------
+
+    memset(&dec_context, 0, sizeof(vc_ccm_context));
+
+    memcpy(dec_context.key, key, sizeof(key));
+    dec_context.key_len = sizeof(key);
+    dec_context.cipher_ctx.type = VC_CIPHER_AES_128_CCM;
+    dec_context.cipher_ctx.mode = VC_MODE_CCM;
+    dec_context.cipher_ctx.operation = VC_OPERATION_DECRYPT;
+
+    memcpy(input, output, sizeof(input));
+    memset(output, 0, sizeof(output));
+
+    ret = vccrypt_ccm_auth_decrypt(&dec_context, sizeof(input),
+                                   nonce, sizeof(nonce),
+                                   a, a_len,
+                                   input, output,
+                                   mic_dec, mic_len);
+
+    if (ret != 0) {
+        printf("vccrypt_ccm_auth_decrypt: FAILED - ret: %d\n", ret);
+        while (1);
+    }
+
+    if (memcmp(output, &decrypted[a_len], m_len) == 0) {
+        printf("decrypted: succeed\n");
+    } else {
+        printf("decrypted: failed\n");
+        while (1);
+    }
+
+    //dump(output, sizeof(output));
+
+    printf("mic_dec:\n");
+    dump(mic_dec, mic_len);
 #endif
 }
 
@@ -234,6 +360,48 @@ static void crypto_test2(void)
     }
 
     dump(mic2, sizeof(mic2));
+
+    printf("------------------------------------------------------\n");
+    printf("crypto_test2: NEW API AES CBC STAR 128 auth only\n");
+    printf("------------------------------------------------------\n");
+
+    // Note: for auth only must use CBC cipher mode
+
+    int ret = 0;
+
+    memset(mic2, 0, sizeof(mic2));
+
+    vc_ccm_context context;
+    memset(&context, 0, sizeof(vc_ccm_context));
+
+    memcpy(context.key, key2, sizeof(key2));
+    context.key_len = sizeof(key2);
+    context.cipher_ctx.type = VC_CIPHER_AES_128_CBC;
+    context.cipher_ctx.mode = VC_MODE_CBC;
+    context.cipher_ctx.operation = VC_OPERATION_ENCRYPT;
+
+    uint8_t tag[8];
+    memset(tag, 0, sizeof(tag));
+
+    ret = vccrypt_ccm_star_encrypt_and_tag(&context, 0,
+                                           nonce2, sizeof(nonce2),
+                                           a2, sizeof(a2),
+                                           NULL, NULL,
+                                           tag, sizeof(tag));
+
+    if (ret != 0) {
+        printf("vccrypt_ccm_star_encrypt_and_tag: FAILED - ret: %d", ret);
+        while (1);
+    }
+
+    if (memcmp(tag, mic2_auth, sizeof(tag)) == 0) {
+        printf("mic: ok\n");
+    } else {
+        printf("mic: failed\n");
+        while (1);
+    }
+
+    dump(tag, sizeof(tag));
 #endif
 }
 
@@ -336,27 +504,89 @@ static void crypto_test3(void)
         0xd3, 0x96, 0x6f, 0x35, 0x30, 0x9a, 0x2c, 0x3c
     };
 
+    uint8_t input[sizeof(m3)];
+    uint8_t output[sizeof(m3)];
+
+    memset(input, 0, sizeof(input));
+    memset(output, 0, sizeof(output));
+
     printf("------------------------------------------------------\n");
     printf("crypto_test3: encrypt [%u]\n", sizeof(m3));
     printf("------------------------------------------------------\n");
 
-    vccrypt_aes_ccm_encrypt(1, key3, nonce3, m3, sizeof(m3), a3, sizeof(a3), mic3, sizeof(mic3));
+    memcpy(input, m3, sizeof(input));
 
-    if (memcmp(m3, m3_enc, sizeof(m3)) == 0) {
+    vccrypt_aes_ccm_encrypt(1, key3, nonce3, input, sizeof(input), a3, sizeof(a3), mic3, sizeof(mic3));
+
+    if (memcmp(input, m3_enc, sizeof(input)) == 0) {
         printf("encrypt: ok\n");
     } else {
         printf("encrypt: failed\n");
+        while (1);
     }
 
-    dump(m3, sizeof(m3));
+    //dump(input, sizeof(input));
 
     if (memcmp(mic3, mic3_auth, sizeof(mic3)) == 0) {
         printf("mic: ok\n");
     } else {
         printf("mic: failed\n");
+        while (1);
     }
 
     dump(mic3, sizeof(mic3));
+
+    printf("------------------------------------------------------\n");
+    printf("crypto_test3: NEW API CCM STAR 128 encrypt [%u]\n", sizeof(m3));
+    printf("------------------------------------------------------\n");
+
+    int ret = 0;
+
+    uint8_t tag[8];
+    memset(tag, 0, sizeof(tag));
+
+    vc_ccm_context context;
+    memset(&context, 0, sizeof(vc_ccm_context));
+
+    memcpy(context.key, key3, sizeof(key3));
+    context.key_len = sizeof(key3);
+    context.cipher_ctx.type = VC_CIPHER_AES_128_CCM;
+    context.cipher_ctx.mode = VC_MODE_CCM;
+    context.cipher_ctx.operation = VC_OPERATION_ENCRYPT;
+
+    memset(input, 0, sizeof(input));
+    memcpy(output, 0, sizeof(output));
+
+    memcpy(input, m3, sizeof(input));
+
+    ret = vccrypt_ccm_star_encrypt_and_tag(&context, sizeof(input),
+                                           nonce3, sizeof(nonce3),
+                                           a3, sizeof(a3),
+                                           input, output,
+                                           tag, sizeof(tag));
+
+    if (ret != 0) {
+        printf("vccrypt_ccm_star_encrypt_and_tag: FAILED - ret: %d", ret);
+        while (1);
+    }
+
+    if (memcmp(output, m3_enc, sizeof(output)) == 0) {
+        printf("encrypt: ok\n");
+    } else {
+        printf("encrypt: failed\n");
+        while (1);
+    }
+
+    //dump(output, sizeof(output));
+
+    if (memcmp(tag, mic3_auth, sizeof(tag)) == 0) {
+        printf("mic: ok\n");
+    } else {
+        printf("mic: failed\n");
+        while (1);
+    }
+
+    dump(tag, sizeof(tag));
 #endif
 }
 
@@ -368,7 +598,7 @@ static void dump(uint8_t *buf, uint32_t len)
                 printf("\n");
             }
         }
-        printf("0x%02x ", buf[i]);
+        printf("%02X ", buf[i]);
     }
     printf("\n");
 }
