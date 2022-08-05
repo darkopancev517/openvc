@@ -11,11 +11,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define VC_CCM_DECRYPT       0
-#define VC_CCM_ENCRYPT       1
-#define VC_CCM_STAR_DECRYPT  2
-#define VC_CCM_STAR_ENCRYPT  3
-
 /** Bad input parameters to the function. */
 #define VC_ERR_CCM_BAD_INPUT    -0x000D
 /** Authenticated decryption failed. */
@@ -27,17 +22,24 @@ extern "C" {
 
 typedef enum
 {
+  VC_CCM_DECRYPT = 0,
+  VC_CCM_ENCRYPT,
+  VC_CCM_STAR_DECRYPT,
+  VC_CCM_STAR_ENCRYPT,
+} vc_ccm_mode_t;
+
+typedef enum
+{
     VC_CIPHER_NONE = 0,
-    VC_CIPHER_NULL,
     VC_CIPHER_AES_128_ECB,
-    VC_CIPHER_AES_192_ECB,
-    VC_CIPHER_AES_256_ECB,
-    VC_CIPHER_AES_128_CBC,
-    VC_CIPHER_AES_192_CBC,
-    VC_CIPHER_AES_256_CBC,
     VC_CIPHER_AES_128_CCM,
+    VC_CIPHER_AES_128_CBC,
+    VC_CIPHER_AES_192_ECB,
     VC_CIPHER_AES_192_CCM,
+    VC_CIPHER_AES_192_CBC,
+    VC_CIPHER_AES_256_ECB,
     VC_CIPHER_AES_256_CCM,
+    VC_CIPHER_AES_256_CBC,
 } vc_cipher_type_t;
 
 typedef enum
@@ -48,18 +50,11 @@ typedef enum
     VC_MODE_CCM,
 } vc_cipher_mode_t;
 
-typedef enum
+enum
 {
     VC_OPERATION_NONE = -1,
-    VC_DECRYPT = 0,
-    VC_ENCRYPT = 1,
-} vc_crypto_operation_t;
-
-enum {
-    VC_CRYPT_KEY_LENGTH_NONE = 0,
-    VC_CRYPT_KEY_LENGTH_DES = 64,
-    VC_CRYPT_KEY_LENGTH_EDE = 128,
-    VC_CRYPT_KEY_LENGTH_EDE3 = 192,
+    VC_OPERATION_DECRYPT = 0,
+    VC_OPERATION_ENCRYPT = 1,
 };
 
 #define VC_CRYPT_MAX_IV_LENGTH 16
@@ -68,25 +63,31 @@ enum {
 
 typedef struct vc_cipher_context_t
 {
+    /* Note: parameters must be set by user */
     vc_cipher_type_t type;
     vc_cipher_mode_t mode;
-    vc_crypto_operation_t operation;
+    uint8_t operation;
     unsigned char iv[VC_CRYPT_MAX_IV_LENGTH];
     size_t iv_size;
 } vc_cipher_context_t;;
 
 typedef struct vc_ccm_context
 {
-    unsigned char B0[16];
-    unsigned char A0[16];
-    vc_cipher_context_t cipher_ctx;
+    /* Note: parameters must be set by user */
+    unsigned char key[VC_CRYPT_MAX_KEY_LENGTH];
+    unsigned char key_len;
     size_t add_len;
     size_t tag_len;
+    vc_cipher_context_t cipher_ctx;
+
+    /* Note: parameters below will be automatically set in code */
+    unsigned char B0[VC_CRYPT_MAX_BLOCK_LENGTH];
+    unsigned char A0[VC_CRYPT_MAX_BLOCK_LENGTH];
     unsigned char q;
-    unsigned char mode;
+    vc_ccm_mode_t mode;
 } vc_ccm_context;
 
-void vccrpt_ccm_init(vc_ccm_context *ctx);
+void vccrypt_ccm_init(vc_ccm_context *ctx);
 
 int vccrypt_ccm_encrypt_and_tag(vc_ccm_context *ctx, size_t length,
                                 const unsigned char *iv, size_t iv_len,
@@ -99,6 +100,18 @@ int vccrypt_ccm_auth_decrypt(vc_ccm_context *ctx, size_t length,
                              const unsigned char *add, size_t add_len,
                              const unsigned char *input, unsigned char *output,
                              const unsigned char *tag, size_t tag_len);
+
+int vccrypt_ccm_star_encrypt_and_tag(vc_ccm_context *ctx, size_t length,
+                                     const unsigned char *iv, size_t iv_len,
+                                     const unsigned char *add, size_t add_len,
+                                     const unsigned char *input, unsigned char *output,
+                                     unsigned char *tag, size_t tag_len );
+
+int vccrypt_ccm_star_auth_decrypt(vc_ccm_context *ctx, size_t length,
+                                  const unsigned char *iv, size_t iv_len,
+                                  const unsigned char *add, size_t add_len,
+                                  const unsigned char *input, unsigned char *output,
+                                  const unsigned char *tag, size_t tag_len );
 
 // ------------------------------------ old legacy api
 int vccrypt_init(bool loopback);
