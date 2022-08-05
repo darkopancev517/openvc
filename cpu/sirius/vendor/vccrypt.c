@@ -1486,6 +1486,17 @@ static int ccm_auth_crypt(vc_ccm_context *ctx, vc_ccm_mode_t ccm_mode, size_t le
         if (ccm_mode != VC_CCM_STAR_ENCRYPT && ccm_mode != VC_CCM_STAR_DECRYPT)
             return VC_ERR_CCM_BAD_INPUT;
 
+        if (ctx->cipher_ctx.mode != VC_MODE_CBC)
+            return VC_ERR_CCM_BAD_INPUT;
+
+        if (ctx->cipher_ctx.type != VC_CIPHER_AES_128_CBC &&
+            ctx->cipher_ctx.type != VC_CIPHER_AES_192_CBC &&
+            ctx->cipher_ctx.type != VC_CIPHER_AES_256_CBC) {
+            return VC_ERR_CCM_BAD_INPUT;
+        }
+
+        // Note: length 0 must use AES_CBC
+
         cbc_encrypt(ctx->cipher_ctx.type,
                     ctx->key,
                     ctx->key_len,
