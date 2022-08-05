@@ -81,6 +81,8 @@ typedef struct vc_ccm_context
     unsigned char A0[VC_CRYPT_MAX_BLOCK_LENGTH];
 } vc_ccm_context;
 
+int vccrypt_init(bool loopback); // Note: must be called in intialization, use loopback = 0
+
 int vccrypt_ccm_encrypt_and_tag(vc_ccm_context *ctx, size_t length,
                                 const unsigned char *iv, size_t iv_len,
                                 const unsigned char *add, size_t add_len,
@@ -106,14 +108,13 @@ int vccrypt_ccm_star_auth_decrypt(vc_ccm_context *ctx, size_t length,
                                   const unsigned char *tag, size_t tag_len );
 
 // ------------------------------------ old legacy api
-int vccrypt_init(bool loopback);
 
 //AES
 void vccrypt_aes_cbc_encrypt(uint8_t forward,uint8_t mode, uint8_t *key, uint8_t *iv, uint16_t iv_len,
-							uint8_t *data, uint16_t data_len,uint8_t *result);
+							               uint8_t *data, uint16_t data_len,uint8_t *result);
 
-void vccrypt_aes_ecb_encrypt(uint8_t forward,uint8_t mode, uint8_t *key
-							,uint8_t *data, uint16_t data_len,uint8_t *result);
+void vccrypt_aes_ecb_encrypt(uint8_t forward,uint8_t mode, uint8_t *key,
+                             uint8_t *data, uint16_t data_len,uint8_t *result);
 
 void vccrypt_aes_ccm_encrypt(uint8_t forward, uint8_t *key, uint8_t *nonce,
                              uint8_t *m, uint16_t m_len,
