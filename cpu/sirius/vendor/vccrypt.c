@@ -632,16 +632,6 @@ struct VCSEC_CTRL {
 struct VCSEC_CTRL_HEADER_CBC {
     struct VCSEC_CTRL ctrl;
     uint8_t IV[16];
-    uint8_t KEY[16];
-};
-struct VCSEC_CTRL_HEADER_CBC_192 {
-    struct VCSEC_CTRL ctrl;
-    uint8_t IV[16];
-    uint8_t KEY[24];
-};
-struct VCSEC_CTRL_HEADER_CBC_256 {
-    struct VCSEC_CTRL ctrl;
-    uint8_t IV[16];
     uint8_t KEY[32];
 };
 
@@ -656,7 +646,7 @@ struct VCSEC_CTRL_HEADER_CCM {
     uint32_t ciper_len : 16;
     uint8_t  B0[16];
     uint8_t  A0[16];
-    uint8_t  KEY[16];
+    uint8_t  KEY[32];
 };
 
 struct VCSEC_CTRL_HEADER_CRC
@@ -984,7 +974,24 @@ static void cbc_encrypt(uint8_t mode, uint8_t *key, uint8_t key_len,
 
     struct VCDMAC_PACKET pkt;
     struct VCSEC_CTRL_HEADER_CBC cbc_head;
-    uint8_t cbc_ctrl_len = sizeof(struct VCSEC_CTRL_HEADER_CBC);
+
+    uint8_t cbc_ctrl_len = 0;
+
+    switch (mode) {
+    case VCSEC_MODE_CBC_128:
+        cbc_ctrl_len = ((sizeof(struct VCSEC_CTRL_HEADER_CBC))-16);
+        break;
+    case VCSEC_MODE_CBC_192:
+        cbc_ctrl_len = ((sizeof(struct VCSEC_CTRL_HEADER_CBC))-8);
+        break;
+    case VCSEC_MODE_CBC_256:
+        cbc_ctrl_len = sizeof(struct VCSEC_CTRL_HEADER_CBC);
+        break;
+    default:
+        cbc_ctrl_len = ((sizeof(struct VCSEC_CTRL_HEADER_CBC))-16);
+        break;
+    }
+
     uint8_t iv[VC_CRYPT_MAX_IV_LENGTH];
     uint8_t T[8];
     uint8_t S0[8];
@@ -1091,6 +1098,23 @@ static void ccm_encrypt(uint8_t forward, uint8_t mode,
     struct VCDMAC_PACKET pkt;
     struct VCSEC_CTRL_HEADER_CCM ccm_head;
 
+    uint8_t ccm_ctrl_len = 0;
+
+    switch (mode) {
+    case VCSEC_MODE_CCM_128:
+        ccm_ctrl_len = ((sizeof(struct VCSEC_CTRL_HEADER_CCM))-16);
+        break;
+    case VCSEC_MODE_CCM_192:
+        ccm_ctrl_len = ((sizeof(struct VCSEC_CTRL_HEADER_CCM))-8);
+        break;
+    case VCSEC_MODE_CCM_256:
+        ccm_ctrl_len = sizeof(struct VCSEC_CTRL_HEADER_CCM);
+        break;
+    default:
+        ccm_ctrl_len = ((sizeof(struct VCSEC_CTRL_HEADER_CCM))-16);
+        break;
+    }
+
     uint8_t a_add[2];
     uint8_t a_pad_len;
     uint8_t a_pad[16];
@@ -1110,7 +1134,7 @@ static void ccm_encrypt(uint8_t forward, uint8_t mode,
 
     ccm_head.ctrl.fields.type = VCSEC_TYPE_AES;
     ccm_head.ctrl.fields.mode = mode;
-    ccm_head.ctrl.fields.head_len = sizeof(struct VCSEC_CTRL_HEADER_CCM);
+    ccm_head.ctrl.fields.head_len = ccm_ctrl_len;
 
     memcpy(ccm_head.KEY, key, key_len);
     memcpy(ccm_head.B0, B0, VC_CRYPT_MAX_BLOCK_LENGTH);
@@ -1176,13 +1200,13 @@ exit:
     return;
 }
 
-void vccrypt_aes_ecb_encrypt(uint8_t forward,uint8_t mode, uint8_t *key
-							,uint8_t *data, uint16_t data_len,uint8_t *result)
+void vccrypt_aes_ecb_encrypt(uint8_t forward,uint8_t mode, uint8_t *key,
+                             uint8_t *data, uint16_t data_len,uint8_t *result)
 {
-	volatile struct VCCRYPT_REG_SPACE *crypt_reg = (volatile struct VCCRYPT_REG_SPACE *)VCCRYPT_REG_BASE;
-	volatile struct VCDMAC_REG_SPACE *dma_reg = (volatile struct VCDMAC_REG_SPACE *)VCDMAC_REG_BASE;
+	  volatile struct VCCRYPT_REG_SPACE *crypt_reg = (volatile struct VCCRYPT_REG_SPACE *)VCCRYPT_REG_BASE;
+	  volatile struct VCDMAC_REG_SPACE *dma_reg = (volatile struct VCDMAC_REG_SPACE *)VCDMAC_REG_BASE;
 
-	struct VCDMAC_PACKET pkt;
+	  struct VCDMAC_PACKET pkt;
     struct VCSEC_CTRL_HEADER_ECB ecb_head;
 
     uint32_t isr_value;
@@ -1201,7 +1225,7 @@ void vccrypt_aes_ecb_encrypt(uint8_t forward,uint8_t mode, uint8_t *key
 
         case VCSEC_MODE_ECB_192:
             ecb_head.ctrl.fields.mode = VCSEC_MODE_ECB_192;
-            ecb_head.ctrl.fields.head_len = (sizeof(struct VCSEC_CTRL_HEADER_ECB)-8);
+            ecb_head.ctrl.fields.head_len = ((sizeof(struct VCSEC_CTRL_HEADER_ECB))-8);
             memcpy(ecb_head.KEY, key, AES_192_KEY_SIZE);
 			break;
 
@@ -1249,8 +1273,6 @@ void vccrypt_aes_cbc_encrypt(uint8_t forward,uint8_t mode, uint8_t *key, uint8_t
 
 	  struct VCDMAC_PACKET pkt;
     struct VCSEC_CTRL_HEADER_CBC cbc_head;
-	  struct VCSEC_CTRL_HEADER_CBC_192 cbc_head_192;
-	  struct VCSEC_CTRL_HEADER_CBC_256 cbc_head_256;
 
     uint32_t isr_value;
 
@@ -1262,51 +1284,41 @@ void vccrypt_aes_cbc_encrypt(uint8_t forward,uint8_t mode, uint8_t *key, uint8_t
         case VCSEC_MODE_CBC_128:
 		        cbc_head.ctrl.fields.type = VCSEC_TYPE_AES;
             cbc_head.ctrl.fields.mode = VCSEC_MODE_CBC_128;
-            cbc_head.ctrl.fields.head_len = ((sizeof(struct VCSEC_CTRL_HEADER_CBC)));
+            cbc_head.ctrl.fields.head_len = ((sizeof(struct VCSEC_CTRL_HEADER_CBC))-16);
             memcpy(cbc_head.KEY, key, AES_128_KEY_SIZE);
 			      memcpy(cbc_head.IV, iv, iv_len);
-			      cbc_head.ctrl.fields.config = (forward == VC_OPERATION_ENCRYPT) ? 0x3 : 0x2;
             break;
 
         case VCSEC_MODE_CBC_192:
-		        cbc_head_192.ctrl.fields.type = VCSEC_TYPE_AES;
-            cbc_head_192.ctrl.fields.mode = VCSEC_MODE_CBC_192;
-            cbc_head_192.ctrl.fields.head_len = (sizeof(struct VCSEC_CTRL_HEADER_CBC_192));
-            memcpy(cbc_head_192.KEY, key, AES_192_KEY_SIZE);
-			      memcpy(cbc_head_192.IV, iv, iv_len);
-			      cbc_head_192.ctrl.fields.config = (forward == VC_OPERATION_ENCRYPT) ? 0x3 : 0x2;
+		        cbc_head.ctrl.fields.type = VCSEC_TYPE_AES;
+            cbc_head.ctrl.fields.mode = VCSEC_MODE_CBC_192;
+            cbc_head.ctrl.fields.head_len = ((sizeof(struct VCSEC_CTRL_HEADER_CBC))-8);
+            memcpy(cbc_head.KEY, key, AES_192_KEY_SIZE);
+			      memcpy(cbc_head.IV, iv, iv_len);
 			      break;
 
         case VCSEC_MODE_CBC_256:
-			      cbc_head_256.ctrl.fields.type = VCSEC_TYPE_AES;
-            cbc_head_256.ctrl.fields.mode = VCSEC_MODE_CBC_256;
-            cbc_head_256.ctrl.fields.head_len = sizeof(struct VCSEC_CTRL_HEADER_CBC_256);
-            memcpy(cbc_head_256.KEY, key, AES_256_KEY_SIZE);
-			      memcpy(cbc_head_256.IV, iv, iv_len);
-			      cbc_head_256.ctrl.fields.config = (forward == VC_OPERATION_ENCRYPT) ? 0x3 : 0x2;
+			      cbc_head.ctrl.fields.type = VCSEC_TYPE_AES;
+            cbc_head.ctrl.fields.mode = VCSEC_MODE_CBC_256;
+            cbc_head.ctrl.fields.head_len = sizeof(struct VCSEC_CTRL_HEADER_CBC);
+            memcpy(cbc_head.KEY, key, AES_256_KEY_SIZE);
+			      memcpy(cbc_head.IV, iv, iv_len);
             break;
 
         default:
 		        cbc_head.ctrl.fields.type = VCSEC_TYPE_AES;
             cbc_head.ctrl.fields.mode = VCSEC_MODE_CBC_128;
-            cbc_head.ctrl.fields.head_len = ((sizeof(struct VCSEC_CTRL_HEADER_CBC)));
+            cbc_head.ctrl.fields.head_len = ((sizeof(struct VCSEC_CTRL_HEADER_CBC))-16);
             memcpy(cbc_head.KEY, key, AES_128_KEY_SIZE);
 			      memcpy(cbc_head.IV, iv, iv_len);
-			      cbc_head.ctrl.fields.config = (forward == VC_OPERATION_ENCRYPT) ? 0x3 : 0x2;
             break;
     }
 
+		cbc_head.ctrl.fields.config = (forward == VC_OPERATION_ENCRYPT) ? 0x3 : 0x2;
+
     vcdmac_pkt_payload_reset(&pkt);
 
-    if(mode==VCSEC_MODE_CBC_128){
-        vcdmac_pkt_payload_attach(&pkt, &cbc_head, cbc_head.ctrl.fields.head_len);
-    }
-    else if(mode==VCSEC_MODE_CBC_192){
-        vcdmac_pkt_payload_attach(&pkt, &cbc_head_192, cbc_head_192.ctrl.fields.head_len);
-    }	
-    else if(mode==VCSEC_MODE_CBC_256){
-        vcdmac_pkt_payload_attach(&pkt, &cbc_head_256, cbc_head_256.ctrl.fields.head_len);
-    }
+    vcdmac_pkt_payload_attach(&pkt, &cbc_head, cbc_head.ctrl.fields.head_len);
     vcdmac_pkt_payload_attach(&pkt, data, data_len);
     vcdmac_pkt_submit(SEC_MODE, &pkt);
 

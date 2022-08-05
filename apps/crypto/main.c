@@ -9,7 +9,7 @@ static void crypto_test3(void);
 
 static void dump(uint8_t *buf, uint32_t len);
 
-// OLD legacy test code
+//Note: set variable below to run specific tests
 #define TEST1 1
 #define TEST2 1
 #define TEST3 1
